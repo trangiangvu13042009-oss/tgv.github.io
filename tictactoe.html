@@ -3,34 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic-Tak-Toe 3x3</title>
+    <title id="docTitle">Tic-Tak-Toe 3x3</title>
     <style>
-        /* Thiết lập giao diện tối (Dark Mode) */
+        /* Thiết lập giao diện tối (Dark Mode) đồng bộ từ Game Hub */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #3498db;
+            --accent-hover: #2980b9;
+            --border-color: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #121212; 
-            color: #e0e0e0; 
-            overflow: hidden;
         }
 
-        h1 {
-            margin-bottom: 5px;
+        /* ================= THANH ĐIỀU HƯỚNG ĐỒNG BỘ 100% ================= */
+        header {
+            background-color: #1a1a1a;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
             color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Khu vực điều khiển trên cùng */
-        .top-controls {
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .nav-controls {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
+            gap: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--accent-color);
+            color: #ffffff;
         }
 
         /* Nút chọn ngôn ngữ */
@@ -51,7 +110,33 @@
             color: #121212;
         }
 
-        /* Khu vực chọn chế độ chơi */
+        /* ================= BỐ CỤC GAME CHÍNH ================= */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .top-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
         .mode-selection {
             display: flex;
             gap: 10px;
@@ -61,16 +146,16 @@
             padding: 8px 16px;
             font-size: 0.9rem;
             font-weight: bold;
-            border: 2px solid #3498db;
+            border: 2px solid var(--accent-color);
             background-color: transparent;
-            color: #3498db;
+            color: var(--accent-color);
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .mode-btn.active {
-            background-color: #3498db;
+            background-color: var(--accent-color);
             color: white;
         }
 
@@ -83,13 +168,12 @@
             text-align: center;
         }
 
-        /* Bàn cờ 3x3 tối màu */
         .board {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             grid-template-rows: repeat(3, 100px);
             gap: 10px;
-            background-color: #2c3e50; 
+            background-color: var(--border-color); 
             padding: 10px;
             border-radius: 10px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -113,13 +197,17 @@
             transform: scale(1.02);
         }
 
-        .cell.x {
-            color: #ff4d4d; 
+        /* Vô hiệu hóa hover nhẹ khi máy đang nghĩ */
+        .board.disabled .cell {
+            cursor: not-allowed;
+        }
+        .board.disabled .cell:hover {
+            background-color: #1e1e1e;
+            transform: none;
         }
 
-        .cell.o {
-            color: #3498db; 
-        }
+        .cell.x { color: #ff4d4d; }
+        .cell.o { color: var(--accent-color); }
 
         .controls {
             display: flex;
@@ -147,13 +235,13 @@
             background-color: #27ae60;
         }
 
-        /* ================= MÀN HÌNH HIỆU ỨNG KẾT THÚC ================= */
+        /* ================= MODAL HIỆU ỨNG KẾT THÚC ================= */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             display: none; 
             align-items: center; justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
             backdrop-filter: blur(8px);
         }
 
@@ -184,7 +272,7 @@
             line-height: 1.4;
         }
 
-        /* Hiệu ứng 1: Thắng (Màu vàng xanh rực rỡ, emoji nhảy tưng bừng) */
+        /* Hiệu ứng Thắng/Thua/Hòa */
         .modal-overlay.win-effect {
             background: radial-gradient(circle, rgba(46, 204, 113, 0.45) 0%, rgba(18, 18, 18, 0.95) 80%);
         }
@@ -195,13 +283,11 @@
         }
         .modal-overlay.win-effect .modal-text {
             color: #2ecc71;
-            text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
         }
         .modal-overlay.win-effect .modal-emoji {
             animation: bounce 0.6s infinite alternate;
         }
 
-        /* Hiệu ứng 2: Thua (Màu đỏ sẫm âm u, màn hình rung lắc, emoji nhấp nháy đen) */
         .modal-overlay.lose-effect {
             background: radial-gradient(circle, rgba(231, 76, 60, 0.45) 0%, rgba(18, 18, 18, 0.95) 80%);
             animation: shakeScreen 0.5s ease-in-out;
@@ -213,13 +299,11 @@
         }
         .modal-overlay.lose-effect .modal-text {
             color: #e74c3c;
-            text-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
         }
         .modal-overlay.lose-effect .modal-emoji {
             animation: pulseLose 1s infinite alternate;
         }
 
-        /* Hiệu ứng 3: Hòa (Màu tím huyền ảo, hơi thở nhẹ nhàng) */
         .modal-overlay.draw-effect {
             background: radial-gradient(circle, rgba(155, 89, 182, 0.45) 0%, rgba(18, 18, 18, 0.95) 80%);
         }
@@ -230,13 +314,11 @@
         }
         .modal-overlay.draw-effect .modal-text {
             color: #9b59b6;
-            text-shadow: 0 0 10px rgba(155, 89, 182, 0.3);
         }
         .modal-overlay.draw-effect .modal-emoji {
             animation: breath 1.8s infinite ease-in-out;
         }
 
-        /* Định nghĩa các chuyển động (Animations) */
         @keyframes bounce {
             0% { transform: translateY(0) scale(1); }
             100% { transform: translateY(-30px) scale(1.1); }
@@ -248,47 +330,75 @@
         }
         @keyframes pulseLose {
             0% { transform: scale(0.9); opacity: 0.7; }
-            100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 15px #e74c3c); }
+            100% { transform: scale(1.15); opacity: 1; }
         }
         @keyframes breath {
             0%, 100% { transform: scale(0.95); }
             50% { transform: scale(1.1); }
         }
+
+        /* Footer */
+        footer {
+            background-color: #1a1a1a;
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: auto;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
-    <div class="top-controls">
-        <!-- Nút chọn ngôn ngữ -->
-        <button class="lang-btn" id="langToggle" onclick="toggleLanguage()">🌐 English</button>
-        
-        <!-- Bộ chọn chế độ -->
-        <div class="mode-selection">
-            <button class="mode-btn active" id="pvpBtn" onclick="setMode('pvp')">👥 Chơi 2 người</button>
-            <button class="mode-btn" id="pveBtn" onclick="setMode('pve')">🤖 Đấu với Máy</button>
+    <!-- ================= HEADER ĐỒNG BỘ GAME HUB ================= -->
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo">🎮 My<span>GameHub</span></a>
+            <div class="nav-controls">
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="index.html#about" id="nav-about">Giới thiệu</a></li>
+                        <li><a href="index.html#games" id="nav-games" class="active">Kho Game</a></li>
+                    </ul>
+                </nav>
+                <button class="lang-btn" id="langToggle" onclick="toggleLanguage()">🌐 English</button>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <h1 id="gameTitle">Tic-Tak-Toe 3x3</h1>
-    <div class="status" id="status">Lượt của X (Bạn)</div>
+    <!-- Khu vực hiển thị nội dung chính -->
+    <main>
+        <h1 id="gameTitle">Tic-Tak-Toe 3x3</h1>
 
-    <div class="board" id="board">
-        <button class="cell" data-cell-index="0"></button>
-        <button class="cell" data-cell-index="1"></button>
-        <button class="cell" data-cell-index="2"></button>
-        <button class="cell" data-cell-index="3"></button>
-        <button class="cell" data-cell-index="4"></button>
-        <button class="cell" data-cell-index="5"></button>
-        <button class="cell" data-cell-index="6"></button>
-        <button class="cell" data-cell-index="7"></button>
-        <button class="cell" data-cell-index="8"></button>
-    </div>
+        <div class="top-controls">
+            <div class="mode-selection">
+                <button class="mode-btn active" id="pvpBtn" onclick="setMode('pvp')">👥 Chơi 2 người</button>
+                <button class="mode-btn" id="pveBtn" onclick="setMode('pve')">🤖 Đấu với Máy</button>
+            </div>
+        </div>
 
-    <div class="controls">
-        <button class="btn reset-btn" id="resetBtn" onclick="resetGame()">Chơi lại 🔄</button>
-    </div>
+        <div class="status" id="status">Lượt của X (Bạn)</div>
 
-    <!-- Màn hình Modal Hiệu ứng kết thúc -->
+        <div class="board" id="board">
+            <button class="cell" data-cell-index="0"></button>
+            <button class="cell" data-cell-index="1"></button>
+            <button class="cell" data-cell-index="2"></button>
+            <button class="cell" data-cell-index="3"></button>
+            <button class="cell" data-cell-index="4"></button>
+            <button class="cell" data-cell-index="5"></button>
+            <button class="cell" data-cell-index="6"></button>
+            <button class="cell" data-cell-index="7"></button>
+            <button class="cell" data-cell-index="8"></button>
+        </div>
+
+        <div class="controls">
+            <button class="btn reset-btn" id="resetBtn" onclick="resetGame()">Chơi lại 🔄</button>
+        </div>
+    </main>
+
+    <!-- Màn hình Modal kết thúc -->
     <div class="modal-overlay" id="endGameModal">
         <div class="modal-content">
             <div class="modal-emoji" id="modalEmoji">🎉</div>
@@ -297,7 +407,14 @@
         </div>
     </div>
 
+    <!-- Footer đồng bộ -->
+    <footer>
+        <p id="footerText">© 2026 My Game Hub. Được thiết kế bởi một Developer tràn đầy nhiệt huyết.</p>
+    </footer>
+
 <script>
+    /* ================= LOGIC GAME TIC-TAC-TOE ================= */
+    const boardElement = document.getElementById('board');
     const cells = document.querySelectorAll('.cell');
     const statusText = document.getElementById('status');
     const pvpBtn = document.getElementById('pvpBtn');
@@ -306,7 +423,10 @@
     const gameTitle = document.getElementById('gameTitle');
     const resetBtn = document.getElementById('resetBtn');
 
-    // Các biến điều khiển của Modal
+    const linkAbout = document.getElementById('nav-about');
+    const linkGames = document.getElementById('nav-games');
+    const footerText = document.getElementById('footerText');
+
     const endGameModal = document.getElementById('endGameModal');
     const modalEmoji = document.getElementById('modalEmoji');
     const modalText = document.getElementById('modalText');
@@ -316,37 +436,45 @@
     let currentPlayer = 'X'; 
     let gameState = ["", "", "", "", "", "", "", "", ""];
     let isGameActive = true;
+    let isBotThinking = false; // Biến chặn hành động click khi máy đang tính toán
     let currentLang = 'vi'; 
 
-    // Bộ từ điển dịch đa ngôn ngữ nâng cấp
     const translations = {
         vi: {
-            title: "Tic-Tak-Toe 3x3",
+            docTitle: "Tic-Tak-Toe 3x3",
+            navAbout: "Giới thiệu",
+            navGames: "Kho Game",
+            langBtn: "🌐 English",
             pvp: "👥 Chơi 2 người",
             pve: "🤖 Đấu với Máy",
             reset: "Chơi lại 🔄",
             turnX: "Lượt của X",
             turnXYou: "Lượt của X (Bạn)",
             turnO: "Lượt của O",
-            botThinking: "Máy đang tính toán...",
+            botThinking: "Máy đang suy nghĩ... 💭",
             win: "Người chơi {player} đã CHIẾN THẮNG! 🎉",
             botWin: "Máy đã thắng! Bạn không thể thắng được đâu 🤖",
             draw: "Trò chơi HÒA! 🤝",
-            modalReset: "Chơi lại 🔄"
+            modalReset: "Chơi lại 🔄",
+            footerText: "© 2026 My Game Hub. Được thiết kế bởi một Developer tràn đầy nhiệt huyết."
         },
         en: {
-            title: "Tic-Tak-Toe 3x3",
+            docTitle: "Tic-Tak-Toe 3x3",
+            navAbout: "About Me",
+            navGames: "Games",
+            langBtn: "🌐 Tiếng Việt",
             pvp: "👥 2 Players",
             pve: "🤖 Vs Computer",
             reset: "Reset Game 🔄",
             turnX: "X's Turn",
             turnXYou: "X's Turn (You)",
             turnO: "O's Turn",
-            botThinking: "Computer thinking...",
+            botThinking: "Computer thinking... 💭",
             win: "Player {player} WINS! 🎉",
             botWin: "Computer wins! AI is unbeatable 🤖",
             draw: "It's a DRAW! 🤝",
-            modalReset: "Play Again 🔄"
+            modalReset: "Play Again 🔄",
+            footerText: "© 2026 My Game Hub. Crafted by a passionate developer."
         }
     };
 
@@ -358,13 +486,24 @@
 
     function toggleLanguage() {
         currentLang = currentLang === 'vi' ? 'en' : 'vi';
-        langToggle.textContent = currentLang === 'vi' ? '🌐 English' : '🌐 Tiếng Việt';
-        
-        gameTitle.textContent = translations[currentLang].title;
-        pvpBtn.textContent = translations[currentLang].pvp;
-        pveBtn.textContent = translations[currentLang].pve;
-        resetBtn.textContent = translations[currentLang].reset;
-        modalResetBtn.textContent = translations[currentLang].modalReset;
+        updateLanguageUI();
+    }
+
+    function updateLanguageUI() {
+        const t = translations[currentLang];
+
+        document.getElementById('docTitle').textContent = t.docTitle;
+        linkAbout.textContent = t.navAbout;
+        linkGames.textContent = t.navGames;
+        langToggle.textContent = t.langBtn;
+
+        gameTitle.textContent = t.docTitle;
+        pvpBtn.textContent = t.pvp;
+        pveBtn.textContent = t.pve;
+        resetBtn.textContent = t.reset;
+        modalResetBtn.textContent = t.modalReset;
+
+        footerText.textContent = t.footerText;
 
         updateStatusDisplay();
     }
@@ -377,6 +516,11 @@
 
         if (!isGameActive) return;
 
+        if (isBotThinking) {
+            statusText.textContent = translations[currentLang].botThinking;
+            return;
+        }
+
         if (currentPlayer === 'X') {
             statusText.textContent = gameMode === 'pve' 
                 ? translations[currentLang].turnXYou 
@@ -388,7 +532,6 @@
         }
     }
 
-    // Thay đổi chế độ chơi
     function setMode(mode) {
         gameMode = mode;
         if (mode === 'pvp') {
@@ -405,26 +548,35 @@
         const clickedCell = e.target;
         const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
 
-        if (gameState[clickedCellIndex] !== "" || !isGameActive) {
+        // CHẶN: Khi ô đã đánh, game đã dừng HOẶC khi bot đang suy nghĩ
+        if (gameState[clickedCellIndex] !== "" || !isGameActive || isBotThinking) {
             return;
         }
 
+        // Người chơi đi nước X
         makeMove(clickedCellIndex, currentPlayer);
 
         if (!isGameActive) return;
 
         if (gameMode === 'pve') {
             currentPlayer = 'O';
+            isBotThinking = true; 
+            boardElement.classList.add('disabled'); // Khóa style hover chuột
             updateStatusDisplay();
             
+            // Thiết lập độ trễ giả lập máy tính "suy nghĩ" 
             setTimeout(() => {
                 const bestMove = findBestMove(gameState);
                 makeMove(bestMove, 'O');
+
+                isBotThinking = false; 
+                boardElement.classList.remove('disabled'); // Mở khóa style hover
+
                 if (isGameActive) {
                     currentPlayer = 'X';
                     updateStatusDisplay();
                 }
-            }, 400);
+            }, 600); // 600ms trễ giúp game có cảm giác chân thật hơn
         } else {
             currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
             updateStatusDisplay();
@@ -438,7 +590,6 @@
         checkResult();
     }
 
-    // Hàm kích hoạt hiệu ứng toàn màn hình
     function triggerEndGameEffect(type, message) {
         endGameModal.className = `modal-overlay ${type}-effect`;
         modalText.textContent = message;
@@ -454,7 +605,6 @@
         endGameModal.style.display = 'flex';
     }
 
-    // Đóng màn hình hiệu ứng và reset
     function closeModalAndReset() {
         endGameModal.style.display = 'none';
         resetGame();
@@ -506,6 +656,8 @@
         currentPlayer = 'X';
         gameState = ["", "", "", "", "", "", "", "", ""];
         isGameActive = true;
+        isBotThinking = false;
+        boardElement.classList.remove('disabled');
         updateStatusDisplay();
         cells.forEach(cell => {
             cell.textContent = "";
@@ -515,7 +667,7 @@
 
     cells.forEach(cell => cell.addEventListener('click', handleCellClick));
 
-    /* ================= THUẬT TOÁN MINIMAX AI (BẤT BẠI) ================= */
+    /* ================= MINIMAX AI (BẤT BẠI) ================= */
     function evaluateBoard(board) {
         for (let i = 0; i < winningConditions.length; i++) {
             const [a, b, c] = winningConditions[i];
@@ -579,6 +731,9 @@
         }
         return bestMove;
     }
+
+    // Khởi tạo hiển thị ban đầu
+    updateLanguageUI();
 </script>
 </body>
 </html>
