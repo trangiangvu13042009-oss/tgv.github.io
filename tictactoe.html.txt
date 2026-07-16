@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tak-Toe 3x3</title>
+    <style>
+        /* Thiết lập giao diện tối (Dark Mode) */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212; 
+            color: #e0e0e0; 
+            overflow: hidden;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+
+        /* Khu vực điều khiển trên cùng */
+        .top-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        /* Nút chọn ngôn ngữ */
+        .lang-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid #f1c40f;
+            background-color: transparent;
+            color: #f1c40f;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover {
+            background-color: #f1c40f;
+            color: #121212;
+        }
+
+        /* Khu vực chọn chế độ chơi */
+        .mode-selection {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 2px solid #3498db;
+            background-color: transparent;
+            color: #3498db;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .status {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #b0b0b0;
+            height: 30px;
+            text-align: center;
+        }
+
+        /* Bàn cờ 3x3 tối màu */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            background-color: #2c3e50; 
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .cell {
+            background-color: #1e1e1e; 
+            border: none;
+            border-radius: 8px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .cell:hover {
+            background-color: #2a2a2a;
+            transform: scale(1.02);
+        }
+
+        .cell.x {
+            color: #ff4d4d; 
+        }
+
+        .cell.o {
+            color: #3498db; 
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background-color 0.2s;
+        }
+
+        .reset-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background-color: #27ae60;
+        }
+
+        /* ================= MÀN HÌNH HIỆU ỨNG KẾT THÚC ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none; 
+            align-items: center; justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-emoji {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* Hiệu ứng 1: Thắng (Màu vàng xanh rực rỡ, emoji nhảy tưng bừng) */
+        .modal-overlay.win-effect {
+            background: radial-gradient(circle, rgba(46, 204, 113, 0.45) 0%, rgba(18, 18, 18, 0.95) 80%);
+        }
+        .modal-overlay.win-effect .modal-content {
+            background-color: #1e1e1e;
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.5);
+        }
+        .modal-overlay.win-effect .modal-text {
+            color: #2ecc71;
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+        }
+        .modal-overlay.win-effect .modal-emoji {
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        /* Hiệu ứng 2: Thua (Màu đỏ sẫm âm u, màn hình rung lắc, emoji nhấp nháy đen) */
+        .modal-overlay.lose-effect {
+            background: radial-gradient(circle, rgba(231, 76, 60, 0.45) 0%, rgba(18, 18, 18, 0.95) 80%);
+            animation: shakeScreen 0.5s ease-in-out;
+        }
+        .modal-overlay.lose-effect .modal-content {
+            background-color: #1a0f0f;
+            border: 3px solid #e74c3c;
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
+        }
+        .modal-overlay.lose-effect .modal-text {
+            color: #e74c3c;
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+        }
+        .modal-overlay.lose-effect .modal-emoji {
+            animation: pulseLose 1s infinite alternate;
+        }
+
+        /* Hiệu ứng 3: Hòa (Màu tím huyền ảo, hơi thở nhẹ nhàng) */
+        .modal-overlay.draw-effect {
+            background: radial-gradient(circle, rgba(155, 89, 182, 0.45) 0%, rgba(18, 18, 18, 0.95) 80%);
+        }
+        .modal-overlay.draw-effect .modal-content {
+            background-color: #1b1622;
+            border: 3px solid #9b59b6;
+            box-shadow: 0 0 30px rgba(155, 89, 182, 0.5);
+        }
+        .modal-overlay.draw-effect .modal-text {
+            color: #9b59b6;
+            text-shadow: 0 0 10px rgba(155, 89, 182, 0.3);
+        }
+        .modal-overlay.draw-effect .modal-emoji {
+            animation: breath 1.8s infinite ease-in-out;
+        }
+
+        /* Định nghĩa các chuyển động (Animations) */
+        @keyframes bounce {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-30px) scale(1.1); }
+        }
+        @keyframes shakeScreen {
+            0%, 100% { transform: translate(0, 0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-8px, 4px); }
+            20%, 40%, 60%, 80% { transform: translate(8px, -4px); }
+        }
+        @keyframes pulseLose {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 15px #e74c3c); }
+        }
+        @keyframes breath {
+            0%, 100% { transform: scale(0.95); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-controls">
+        <!-- Nút chọn ngôn ngữ -->
+        <button class="lang-btn" id="langToggle" onclick="toggleLanguage()">🌐 English</button>
+        
+        <!-- Bộ chọn chế độ -->
+        <div class="mode-selection">
+            <button class="mode-btn active" id="pvpBtn" onclick="setMode('pvp')">👥 Chơi 2 người</button>
+            <button class="mode-btn" id="pveBtn" onclick="setMode('pve')">🤖 Đấu với Máy</button>
+        </div>
+    </div>
+
+    <h1 id="gameTitle">Tic-Tak-Toe 3x3</h1>
+    <div class="status" id="status">Lượt của X (Bạn)</div>
+
+    <div class="board" id="board">
+        <button class="cell" data-cell-index="0"></button>
+        <button class="cell" data-cell-index="1"></button>
+        <button class="cell" data-cell-index="2"></button>
+        <button class="cell" data-cell-index="3"></button>
+        <button class="cell" data-cell-index="4"></button>
+        <button class="cell" data-cell-index="5"></button>
+        <button class="cell" data-cell-index="6"></button>
+        <button class="cell" data-cell-index="7"></button>
+        <button class="cell" data-cell-index="8"></button>
+    </div>
+
+    <div class="controls">
+        <button class="btn reset-btn" id="resetBtn" onclick="resetGame()">Chơi lại 🔄</button>
+    </div>
+
+    <!-- Màn hình Modal Hiệu ứng kết thúc -->
+    <div class="modal-overlay" id="endGameModal">
+        <div class="modal-content">
+            <div class="modal-emoji" id="modalEmoji">🎉</div>
+            <div class="modal-text" id="modalText">Bạn đã chiến thắng!</div>
+            <button class="btn reset-btn" id="modalResetBtn" onclick="closeModalAndReset()">Chơi lại 🔄</button>
+        </div>
+    </div>
+
+<script>
+    const cells = document.querySelectorAll('.cell');
+    const statusText = document.getElementById('status');
+    const pvpBtn = document.getElementById('pvpBtn');
+    const pveBtn = document.getElementById('pveBtn');
+    const langToggle = document.getElementById('langToggle');
+    const gameTitle = document.getElementById('gameTitle');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // Các biến điều khiển của Modal
+    const endGameModal = document.getElementById('endGameModal');
+    const modalEmoji = document.getElementById('modalEmoji');
+    const modalText = document.getElementById('modalText');
+    const modalResetBtn = document.getElementById('modalResetBtn');
+
+    let gameMode = 'pvp'; 
+    let currentPlayer = 'X'; 
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+    let isGameActive = true;
+    let currentLang = 'vi'; 
+
+    // Bộ từ điển dịch đa ngôn ngữ nâng cấp
+    const translations = {
+        vi: {
+            title: "Tic-Tak-Toe 3x3",
+            pvp: "👥 Chơi 2 người",
+            pve: "🤖 Đấu với Máy",
+            reset: "Chơi lại 🔄",
+            turnX: "Lượt của X",
+            turnXYou: "Lượt của X (Bạn)",
+            turnO: "Lượt của O",
+            botThinking: "Máy đang tính toán...",
+            win: "Người chơi {player} đã CHIẾN THẮNG! 🎉",
+            botWin: "Máy đã thắng! Bạn không thể thắng được đâu 🤖",
+            draw: "Trò chơi HÒA! 🤝",
+            modalReset: "Chơi lại 🔄"
+        },
+        en: {
+            title: "Tic-Tak-Toe 3x3",
+            pvp: "👥 2 Players",
+            pve: "🤖 Vs Computer",
+            reset: "Reset Game 🔄",
+            turnX: "X's Turn",
+            turnXYou: "X's Turn (You)",
+            turnO: "O's Turn",
+            botThinking: "Computer thinking...",
+            win: "Player {player} WINS! 🎉",
+            botWin: "Computer wins! AI is unbeatable 🤖",
+            draw: "It's a DRAW! 🤝",
+            modalReset: "Play Again 🔄"
+        }
+    };
+
+    const winningConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ];
+
+    function toggleLanguage() {
+        currentLang = currentLang === 'vi' ? 'en' : 'vi';
+        langToggle.textContent = currentLang === 'vi' ? '🌐 English' : '🌐 Tiếng Việt';
+        
+        gameTitle.textContent = translations[currentLang].title;
+        pvpBtn.textContent = translations[currentLang].pvp;
+        pveBtn.textContent = translations[currentLang].pve;
+        resetBtn.textContent = translations[currentLang].reset;
+        modalResetBtn.textContent = translations[currentLang].modalReset;
+
+        updateStatusDisplay();
+    }
+
+    function updateStatusDisplay(endStatus = null) {
+        if (endStatus) {
+            statusText.textContent = endStatus;
+            return;
+        }
+
+        if (!isGameActive) return;
+
+        if (currentPlayer === 'X') {
+            statusText.textContent = gameMode === 'pve' 
+                ? translations[currentLang].turnXYou 
+                : translations[currentLang].turnX;
+        } else {
+            statusText.textContent = gameMode === 'pve'
+                ? translations[currentLang].botThinking
+                : translations[currentLang].turnO;
+        }
+    }
+
+    // Thay đổi chế độ chơi
+    function setMode(mode) {
+        gameMode = mode;
+        if (mode === 'pvp') {
+            pvpBtn.classList.add('active');
+            pveBtn.classList.remove('active');
+        } else {
+            pveBtn.classList.add('active');
+            pvpBtn.classList.remove('active');
+        }
+        resetGame();
+    }
+
+    function handleCellClick(e) {
+        const clickedCell = e.target;
+        const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
+
+        if (gameState[clickedCellIndex] !== "" || !isGameActive) {
+            return;
+        }
+
+        makeMove(clickedCellIndex, currentPlayer);
+
+        if (!isGameActive) return;
+
+        if (gameMode === 'pve') {
+            currentPlayer = 'O';
+            updateStatusDisplay();
+            
+            setTimeout(() => {
+                const bestMove = findBestMove(gameState);
+                makeMove(bestMove, 'O');
+                if (isGameActive) {
+                    currentPlayer = 'X';
+                    updateStatusDisplay();
+                }
+            }, 400);
+        } else {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateStatusDisplay();
+        }
+    }
+
+    function makeMove(index, player) {
+        gameState[index] = player;
+        cells[index].textContent = player;
+        cells[index].classList.add(player.toLowerCase());
+        checkResult();
+    }
+
+    // Hàm kích hoạt hiệu ứng toàn màn hình
+    function triggerEndGameEffect(type, message) {
+        endGameModal.className = `modal-overlay ${type}-effect`;
+        modalText.textContent = message;
+
+        if (type === 'win') {
+            modalEmoji.textContent = "🏆";
+        } else if (type === 'lose') {
+            modalEmoji.textContent = "👾";
+        } else {
+            modalEmoji.textContent = "🤝";
+        }
+
+        endGameModal.style.display = 'flex';
+    }
+
+    // Đóng màn hình hiệu ứng và reset
+    function closeModalAndReset() {
+        endGameModal.style.display = 'none';
+        resetGame();
+    }
+
+    function checkResult() {
+        let roundWon = false;
+        for (let i = 0; i < winningConditions.length; i++) {
+            const [a, b, c] = winningConditions[i];
+            if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                roundWon = true;
+                break;
+            }
+        }
+
+        if (roundWon) {
+            let endMsg = "";
+            let effectType = "win";
+
+            if (gameMode === 'pve' && currentPlayer === 'O') {
+                endMsg = translations[currentLang].botWin;
+                effectType = "lose"; 
+            } else {
+                endMsg = translations[currentLang].win.replace("{player}", currentPlayer);
+                effectType = "win"; 
+            }
+
+            updateStatusDisplay(endMsg);
+            isGameActive = false;
+
+            setTimeout(() => {
+                triggerEndGameEffect(effectType, endMsg);
+            }, 500);
+            return;
+        }
+
+        if (!gameState.includes("")) {
+            const drawMsg = translations[currentLang].draw;
+            updateStatusDisplay(drawMsg);
+            isGameActive = false;
+
+            setTimeout(() => {
+                triggerEndGameEffect('draw', drawMsg);
+            }, 500);
+        }
+    }
+
+    function resetGame() {
+        currentPlayer = 'X';
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        isGameActive = true;
+        updateStatusDisplay();
+        cells.forEach(cell => {
+            cell.textContent = "";
+            cell.className = "cell";
+        });
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+
+    /* ================= THUẬT TOÁN MINIMAX AI (BẤT BẠI) ================= */
+    function evaluateBoard(board) {
+        for (let i = 0; i < winningConditions.length; i++) {
+            const [a, b, c] = winningConditions[i];
+            if (board[a] === board[b] && board[b] === board[c]) {
+                if (board[a] === 'O') return 10;
+                if (board[a] === 'X') return -10;
+            }
+        }
+        return 0;
+    }
+
+    function isMovesLeft(board) {
+        return board.includes("");
+    }
+
+    function minimax(board, depth, isMax) {
+        let score = evaluateBoard(board);
+
+        if (score === 10) return score - depth;
+        if (score === -10) return score + depth;
+        if (!isMovesLeft(board)) return 0;
+
+        if (isMax) {
+            let best = -Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = 'O';
+                    best = Math.max(best, minimax(board, depth + 1, false));
+                    board[i] = "";
+                }
+            }
+            return best;
+        } else {
+            let best = Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = 'X';
+                    best = Math.min(best, minimax(board, depth + 1, true));
+                    board[i] = "";
+                }
+            }
+            return best;
+        }
+    }
+
+    function findBestMove(board) {
+        let bestVal = -Infinity;
+        let bestMove = -1;
+
+        for (let i = 0; i < 9; i++) {
+            if (board[i] === "") {
+                board[i] = 'O';
+                let moveVal = minimax(board, 0, false);
+                board[i] = "";
+
+                if (moveVal > bestVal) {
+                    bestMove = i;
+                    bestVal = moveVal;
+                }
+            }
+        }
+        return bestMove;
+    }
+</script>
+</body>
+</html>
