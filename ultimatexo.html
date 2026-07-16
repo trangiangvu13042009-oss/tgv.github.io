@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Tic Tac Toe - VS Bot</title>
+    <style>
+        :root {
+            --bg-color: #e9f1f7;
+            --text-color: #333;
+            --primary-color: #3498db;
+            --bot-color: #9b59b6;
+            --x-color: #e74c3c;
+            --o-color: #2ecc71;
+            --board-bg: #2c3e50;
+            --cell-bg: #fff;
+            --disabled-color: #bdc3c7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: var(--board-bg);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .menu {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-mode {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .btn-friend { background-color: var(--primary-color); }
+        .btn-bot { background-color: var(--bot-color); }
+        .btn-mode:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .btn-mode.active { outline: 4px solid #f1c40f; outline-offset: 2px; }
+
+        .status-container {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .ultimate-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background-color: var(--board-bg);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .small-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            background-color: var(--board-bg);
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .small-board.active-board {
+            box-shadow: 0 0 0 4px #f1c40f;
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        .board-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.85);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .small-board.won-X .board-overlay { opacity: 1; color: var(--x-color); }
+        .small-board.won-O .board-overlay { opacity: 1; color: var(--o-color); }
+        .small-board.drawn .board-overlay { opacity: 1; color: #7f8c8d; font-size: 4rem; }
+
+        .cell {
+            width: 50px; height: 50px;
+            background-color: var(--cell-bg);
+            border: none;
+            font-size: 2rem;
+            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .cell { width: 35px; height: 35px; font-size: 1.5rem; }
+        }
+
+        .cell:hover:not(.disabled) { background-color: #f0f0f0; }
+        .cell.disabled { cursor: not-allowed; background-color: var(--disabled-color); color: rgba(0,0,0,0.2); }
+        .cell.x { color: var(--x-color); }
+        .cell.o { color: var(--o-color); }
+        
+        .thinking { color: var(--bot-color); font-style: italic; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <h1>Ultimate Tic Tac Toe</h1>
+    
+    <div class="menu">
+        <button id="btnFriend" class="btn-mode btn-friend active" onclick="setMode('friend')">👤 PLAY VS. FRIEND</button>
+        <button id="btnBot" class="btn-mode btn-bot" onclick="setMode('bot')">🤖 PLAY VS. BOT</button>
+    </div>
+
+    <div class="status-container">
+        <div id="statusText">Lượt đi của: <span style="color: var(--x-color);">X</span></div>
+    </div>
+
+    <div class="ultimate-board" id="ultimateBoard"></div>
+
+<script>
+    // --- Biến Toàn Cục ---
+    let currentPlayer = 'X';
+    let gameActive = true;
+    let smallBoardsData = Array(9).fill(null).map(() => Array(9).fill(""));
+    let bigBoardData = Array(9).fill(null);
+    let activeBoardIndex = -1; 
+    let playVsBot = false;
+    let isBotThinking = false;
+
+    const WIN_COMBOS = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ];
+
+    const ultimateBoardEl = document.getElementById('ultimateBoard');
+    const statusTextEl = document.getElementById('statusText');
+
+    // --- Khởi tạo ---
+    function setMode(mode) {
+        playVsBot = (mode === 'bot');
+        document.getElementById('btnFriend').classList.toggle('active', !playVsBot);
+        document.getElementById('btnBot').classList.toggle('active', playVsBot);
+        resetGame();
+    }
+
+    function initBoard() {
+        ultimateBoardEl.innerHTML = '';
+        for (let b = 0; b < 9; b++) {
+            const smallBoardEl = document.createElement('div');
+            smallBoardEl.className = 'small-board';
+            smallBoardEl.id = `board-${b}`;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'board-overlay';
+            overlay.id = `overlay-${b}`;
+            smallBoardEl.appendChild(overlay);
+
+            for (let c = 0; c < 9; c++) {
+                const cell = document.createElement('button');
+                cell.className = 'cell';
+                cell.id = `cell-${b}-${c}`;
+                cell.onclick = () => onCellClicked(b, c);
+                smallBoardEl.appendChild(cell);
+            }
+            ultimateBoardEl.appendChild(smallBoardEl);
+        }
+        updateUI();
+    }
+
+    // --- Logic Game Chính ---
+    function onCellClicked(b, c) {
+        if (!gameActive || isBotThinking) return;
+        if (playVsBot && currentPlayer === 'O') return; // Không cho click khi bot đang đi
+
+        if (isValidMove(b, c, activeBoardIndex, smallBoardsData, bigBoardData)) {
+            executeMove(b, c);
+        }
+    }
+
+    function isValidMove(b, c, activeIdx, smallB, bigB) {
+        if (activeIdx !== -1 && activeIdx !== b) return false;
+        if (bigB[b] !== null) return false;
+        if (smallB[b][c] !== "") return false;
+        return true;
+    }
+
+    function executeMove(b, c) {
+        smallBoardsData[b][c] = currentPlayer;
+        
+        let boardWon = checkLineWin(smallBoardsData[b]);
+        if (boardWon) {
+            bigBoardData[b] = currentPlayer;
+            document.getElementById(`overlay-${b}`).textContent = currentPlayer;
+        } else if (!smallBoardsData[b].includes("")) {
+            bigBoardData[b] = 'D'; // Draw
+            document.getElementById(`overlay-${b}`).textContent = '-';
+        }
+
+        // Xác định bảng tiếp theo
+        activeBoardIndex = (bigBoardData[c] !== null) ? -1 : c;
+
+        // Kiểm tra kết thúc game
+        if (checkLineWin(bigBoardData)) {
+            gameActive = false;
+            statusTextEl.innerHTML = `<span style="color: ${currentPlayer === 'X' ? 'var(--x-color)' : 'var(--o-color)'}">🎉 ${currentPlayer} ĐÃ CHIẾN THẮNG! 🎉</span>`;
+            updateUI();
+            return;
+        }
+
+        // Chuyển lượt
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        updateStatus();
+        updateUI();
+
+        // Nếu chế độ Bot và tới lượt Bot
+        if (playVsBot && currentPlayer === 'O' && gameActive) {
+            isBotThinking = true;
+            statusTextEl.innerHTML = `<span class="thinking">🤖 Bot đang tính toán nước đi tối ưu...</span>`;
+            setTimeout(makeBotMove, 50); // Delay nhẹ để UI kịp render chữ "đang tính toán"
+        }
+    }
+
+    function checkLineWin(boardArray) {
+        for (let combo of WIN_COMBOS) {
+            const [x, y, z] = combo;
+            if (boardArray[x] && boardArray[x] !== 'D' && 
+                boardArray[x] === boardArray[y] && 
+                boardArray[x] === boardArray[z]) {
+                return boardArray[x];
+            }
+        }
+        return null;
+    }
+
+    function updateStatus() {
+        const pColor = currentPlayer === 'X' ? 'var(--x-color)' : 'var(--o-color)';
+        statusTextEl.innerHTML = `Lượt đi của: <span style="color: ${pColor};">${currentPlayer}</span>`;
+    }
+
+    // --- BOT LOGIC (Minimax + Alpha-Beta Pruning) ---
+    function makeBotMove() {
+        const depth = 4; // Độ sâu phân tích (Backtracking depth). Tăng lên sẽ thông minh hơn nhưng chậm hơn.
+        
+        let bestScore = -Infinity;
+        let bestMove = null;
+        let legalMoves = getLegalMoves(activeBoardIndex, smallBoardsData, bigBoardData);
+
+        // Đảo ngẫu nhiên mảng moves để bot không đi lại 1 kiểu nhàm chán khi các điểm số bằng nhau
+        legalMoves.sort(() => Math.random() - 0.5);
+
+        for (let move of legalMoves) {
+            // Mô phỏng nước đi
+            let state = cloneState(smallBoardsData, bigBoardData, activeBoardIndex);
+            applySimulatedMove(state, move.b, move.c, 'O');
+            
+            let score = minimax(state, depth - 1, -Infinity, Infinity, false);
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = move;
+            }
+        }
+
+        isBotThinking = false;
+        if (bestMove) executeMove(bestMove.b, bestMove.c);
+    }
+
+    function minimax(state, depth, alpha, beta, isMaximizing) {
+        // Điều kiện dừng: Thắng/Thua hoặc hết độ sâu
+        let winner = checkLineWin(state.big);
+        if (winner === 'O') return 1000 + depth; // Bot thắng (Càng nhanh càng tốt -> + depth)
+        if (winner === 'X') return -1000 - depth; // Human thắng
+        if (depth === 0) return evaluateState(state);
+
+        let moves = getLegalMoves(state.active, state.small, state.big);
+        if (moves.length === 0) return 0; // Hòa
+
+        if (isMaximizing) {
+            let maxEval = -Infinity;
+            for (let move of moves) {
+                let nextState = cloneState(state.small, state.big, state.active);
+                applySimulatedMove(nextState, move.b, move.c, 'O');
+                let ev = minimax(nextState, depth - 1, alpha, beta, false);
+                maxEval = Math.max(maxEval, ev);
+                alpha = Math.max(alpha, ev);
+                if (beta <= alpha) break; // Cắt tỉa nhánh (Alpha-Beta Pruning)
+            }
+            return maxEval;
+        } else {
+            let minEval = Infinity;
+            for (let move of moves) {
+                let nextState = cloneState(state.small, state.big, state.active);
+                applySimulatedMove(nextState, move.b, move.c, 'X');
+                let ev = minimax(nextState, depth - 1, alpha, beta, true);
+                minEval = Math.min(minEval, ev);
+                beta = Math.min(beta, ev);
+                if (beta <= alpha) break; // Cắt tỉa nhánh
+            }
+            return minEval;
+        }
+    }
+
+    function getLegalMoves(activeIdx, smallB, bigB) {
+        let moves = [];
+        if (activeIdx === -1 || bigB[activeIdx] !== null) {
+            // Đánh tự do (Free move)
+            for (let b = 0; b < 9; b++) {
+                if (bigB[b] === null) {
+                    for (let c = 0; c < 9; c++) {
+                        if (smallB[b][c] === "") moves.push({b, c});
+                    }
+                }
+            }
+        } else {
+            // Bị ép đánh ở bảng activeIdx
+            for (let c = 0; c < 9; c++) {
+                if (smallB[activeIdx][c] === "") moves.push({b: activeIdx, c});
+            }
+        }
+        return moves;
+    }
+
+    function applySimulatedMove(state, b, c, player) {
+        state.small[b][c] = player;
+        let boardWon = checkLineWin(state.small[b]);
+        if (boardWon) {
+            state.big[b] = player;
+        } else if (!state.small[b].includes("")) {
+            state.big[b] = 'D';
+        }
+        state.active = (state.big[c] !== null) ? -1 : c;
+    }
+
+    // Hàm đánh giá heuristic: Đếm số bảng nhỏ đã chiếm được
+    function evaluateState(state) {
+        let score = 0;
+        for (let i = 0; i < 9; i++) {
+            if (state.big[i] === 'O') score += 10;
+            else if (state.big[i] === 'X') score -= 10;
+        }
+        return score;
+    }
+
+    function cloneState(smallB, bigB, activeIdx) {
+        return {
+            small: smallB.map(board => [...board]),
+            big: [...bigB],
+            active: activeIdx
+        };
+    }
+
+    // --- UI Render ---
+    function updateUI() {
+        for (let b = 0; b < 9; b++) {
+            const boardEl = document.getElementById(`board-${b}`);
+            boardEl.classList.remove('active-board', 'won-X', 'won-O', 'drawn');
+
+            if (bigBoardData[b] === 'X') boardEl.classList.add('won-X');
+            else if (bigBoardData[b] === 'O') boardEl.classList.add('won-O');
+            else if (bigBoardData[b] === 'D') boardEl.classList.add('drawn');
+
+            if (gameActive && !isBotThinking) {
+                if ((activeBoardIndex === -1 || activeBoardIndex === b) && bigBoardData[b] === null) {
+                    boardEl.classList.add('active-board');
+                }
+            }
+
+            for (let c = 0; c < 9; c++) {
+                const cell = document.getElementById(`cell-${b}-${c}`);
+                const val = smallBoardsData[b][c];
+                
+                cell.textContent = val;
+                cell.className = 'cell';
+                if (val === 'X') cell.classList.add('x');
+                if (val === 'O') cell.classList.add('o');
+
+                const isBoardActive = (activeBoardIndex === -1 || activeBoardIndex === b) && bigBoardData[b] === null;
+                if (!isBoardActive || val !== "" || !gameActive || isBotThinking) {
+                    cell.classList.add('disabled');
+                }
+            }
+        }
+    }
+
+    function resetGame() {
+        currentPlayer = 'X';
+        gameActive = true;
+        isBotThinking = false;
+        activeBoardIndex = -1;
+        smallBoardsData = Array(9).fill(null).map(() => Array(9).fill(""));
+        bigBoardData = Array(9).fill(null);
+        updateStatus();
+        initBoard();
+    }
+
+    initBoard();
+</script>
+</body>
+</html>
