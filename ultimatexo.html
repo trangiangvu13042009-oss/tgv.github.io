@@ -252,6 +252,7 @@
 
         .controls {
             margin-top: 25px;
+            margin-bottom: 35px;
         }
         .btn {
             padding: 10px 20px; font-size: 1rem; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s;
@@ -259,7 +260,55 @@
         .reset-btn { background-color: #2ecc71; color: white; }
         .reset-btn:hover { background-color: #27ae60; }
 
-        /* ================= MODAL HIỆU ỨNG KẾT THÚC (Giữ nguyên) ================= */
+        /* ================= KHU VỰC LUẬT CHƠI (MỚI THÊM) ================= */
+        .rules-card {
+            max-width: 530px;
+            width: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .rules-card h2 {
+            font-size: 1.25rem;
+            color: #ffffff;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .rules-card ul {
+            list-style-type: none;
+        }
+
+        .rules-card li {
+            font-size: 0.92rem;
+            color: #b8b8b8;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            position: relative;
+            padding-left: 22px;
+        }
+
+        .rules-card li::before {
+            content: "⚡";
+            position: absolute;
+            left: 0;
+            top: 1px;
+            color: #f1c40f;
+            font-size: 0.9rem;
+        }
+
+        .rules-card li strong {
+            color: #ffffff;
+        }
+
+        /* ================= MODAL HIỆU ỨNG KẾT THÚC ================= */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: none; align-items: center; justify-content: center;
@@ -329,6 +378,14 @@
         <div class="controls">
             <button class="btn reset-btn" id="resetBtn" onclick="resetGame()">Chơi lại 🔄</button>
         </div>
+
+        <!-- Thẻ hiển thị Luật chơi được cập nhật động bằng JS -->
+        <div class="rules-card">
+            <h2 id="rulesTitle">📖 Luật Chơi Tóm Tắt</h2>
+            <ul id="rulesList">
+                <!-- Nội dung luật chơi tự động tải theo ngôn ngữ -->
+            </ul>
+        </div>
     </main>
 
     <!-- Modal Kết Thúc -->
@@ -387,15 +444,24 @@
             pvp: "👥 Chơi 2 người",
             pve: "🤖 Đấu với Máy",
             reset: "Chơi lại 🔄",
-            turnX: "Lượt của X",
-            turnXYou: "Lượt của X (Bạn)",
-            turnO: "Lượt của O",
+            // Thêm thẻ màu sắc vào phần dịch tiếng Việt
+            turnX: 'Lượt của <span style="color: var(--x-color);">X</span>',
+            turnXYou: 'Lượt của <span style="color: var(--x-color);">X</span> (Bạn)',
+            turnO: 'Lượt của <span style="color: var(--o-color);">O</span>',
             botThinking: "Máy đang tính toán... 💭",
             win: "Người chơi {player} đã CHIẾN THẮNG! 🎉",
             botWin: "Máy đã thắng! Thử lại nhé 🤖",
             draw: "Trò chơi HÒA! 🤝",
             modalReset: "Chơi lại 🔄",
-            footerText: "© 2026 My Game Hub. Được thiết kế bởi một Developer tràn đầy nhiệt huyết."
+            footerText: "© 2026 My Game Hub. Được thiết kế bởi một Developer tràn đầy nhiệt huyết.",
+            
+            // Dịch luật chơi (Tiếng Việt)
+            rulesTitle: "📖 Luật Chơi Siêu Cấp",
+            rule1: "Bàn cờ lớn gồm <strong>9 bàn cờ nhỏ 3x3</strong> bên trong.",
+            rule2: "<strong>Quy luật ép buộc:</strong> Nước đi của bạn trong ô nhỏ sẽ chỉ định chính xác bàn cờ nhỏ tiếp theo đối thủ bắt buộc phải đánh (Ví dụ: Đánh vào ô góc trên bên phải, đối thủ phải đi ở bàn cờ nằm ở góc trên bên phải).",
+            rule3: "Thắng một bàn cờ nhỏ bằng cách tạo hàng 3 ký tự (ngang/dọc/chéo) để chiếm trọn bàn cờ đó.",
+            rule4: "<strong>Nước đi tự do:</strong> Nếu bị gửi đến một bàn cờ nhỏ đã kết thúc (đã thắng hoặc hòa), bạn được quyền đánh ở <strong>bất kỳ ô trống nào</strong> trên toàn bộ bàn cờ lớn.",
+            rule5: "<strong>Chiến thắng chung cuộc:</strong> Người đầu tiên chiếm được 3 bàn cờ nhỏ tạo thành một hàng thẳng sẽ thắng trận đấu!"
         },
         en: {
             docTitle: "Ultimate Tic-Tac-Toe",
@@ -405,15 +471,24 @@
             pvp: "👥 2 Players",
             pve: "🤖 Vs Computer",
             reset: "Reset Game 🔄",
-            turnX: "X's Turn",
-            turnXYou: "X's Turn (You)",
-            turnO: "O's Turn",
+            // Đảo vị trí thẻ màu lên trước chữ 's Turn cho đúng ngữ pháp tiếng Anh
+            turnX: '<span style="color: var(--x-color);">X</span>\'s Turn',
+            turnXYou: '<span style="color: var(--x-color);">X</span>\'s Turn (You)',
+            turnO: '<span style="color: var(--o-color);">O</span>\'s Turn',
             botThinking: "Computer thinking... 💭",
             win: "Player {player} WINS! 🎉",
             botWin: "Computer wins! AI is tough 🤖",
             draw: "It's a DRAW! 🤝",
             modalReset: "Play Again 🔄",
-            footerText: "© 2026 My Game Hub. Crafted by a passionate developer."
+            footerText: "© 2026 My Game Hub. Crafted by a passionate developer.",
+            
+            // Dịch luật chơi (Tiếng Anh)
+            rulesTitle: "📖 Ultimate Rules",
+            rule1: "The big board contains <strong>9 smaller 3x3 mini-boards</strong>.",
+            rule2: "<strong>The Target Mechanic:</strong> Your move in a mini-board dictates which mini-board your opponent must play in next (e.g., placing in the top-right cell forces them to play in the top-right mini-board).",
+            rule3: "Win a mini-board by getting 3-in-a-row to claim that section.",
+            rule4: "<strong>Free Move:</strong> If you are sent to a mini-board that is already won or full, you get a 'Free Move' to play in <strong>any available cell</strong> across the entire board.",
+            rule5: "<strong>Global Win:</strong> Align 3 won mini-boards in a row (row, column, or diagonal) to win the whole game!"
         }
     };
 
@@ -434,6 +509,17 @@
         resetBtn.textContent = t.reset;
         modalResetBtn.textContent = t.modalReset;
         footerText.textContent = t.footerText;
+        
+        // Cập nhật nội dung luật chơi tự động
+        document.getElementById('rulesTitle').textContent = t.rulesTitle;
+        document.getElementById('rulesList').innerHTML = `
+            <li>${t.rule1}</li>
+            <li>${t.rule2}</li>
+            <li>${t.rule3}</li>
+            <li>${t.rule4}</li>
+            <li>${t.rule5}</li>
+        `;
+        
         updateStatusDisplay();
     }
 
@@ -447,10 +533,13 @@
             statusText.innerHTML = `<span class="thinking">${translations[currentLang].botThinking}</span>`;
             return;
         }
+
+        // LẤY DỮ LIỆU ĐÃ DỊCH THEO NGÔN NGỮ HIỆN TẠI
+        const t = translations[currentLang];
         if (currentPlayer === 'X') {
-            statusText.innerHTML = `Lượt của: <span style="color: var(--x-color);">X</span> ${gameMode === 'pve' ? '(Bạn)' : ''}`;
+            statusText.innerHTML = (gameMode === 'pve') ? t.turnXYou : t.turnX;
         } else {
-            statusText.innerHTML = `Lượt của: <span style="color: var(--o-color);">O</span>`;
+            statusText.innerHTML = t.turnO;
         }
     }
 
