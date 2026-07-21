@@ -66,32 +66,6 @@
             color: var(--accent-color);
         }
 
-        .nav-controls {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-color);
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            background-color: var(--accent-color);
-            color: #ffffff;
-        }
-
         /* Khu vực hiển thị Game */
         main {
             flex: 1;
@@ -152,6 +126,69 @@
         }
         .mode-btn.rush:hover { 
             background: rgba(241, 196, 15, 0.25); 
+        }
+
+        /* ===== DESIGN SWITCH BẤT TỬ (GOD MODE) ===== */
+        .god-mode-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #141414;
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .god-mode-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #f1c40f;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2c3e50;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2ecc71;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
         }
 
         /* Header Info trong Game */
@@ -272,11 +309,6 @@
     <header>
         <div class="nav-container">
             <a href="index.html" class="logo">🎮 My<span>GameHub</span></a>
-            <div class="nav-controls">
-                <nav>
-                    
-                </nav>
-            </div>
         </div>
     </header>
 
@@ -285,8 +317,19 @@
         <!-- MENU CHỌN CHẾ ĐỘ -->
         <div id="menu-screen">
             <h1 class="menu-title">🌎 Global Flag Trivia</h1>
-            <p style="margin-bottom: 20px; color: #a0a0a0;">Answer strictly in English. Max 3 mistakes allowed!</p>
+            <p style="margin-bottom: 15px; color: #a0a0a0;">Answer strictly in English. Max 3 mistakes allowed!</p>
             
+            <!-- CÔNG TẮC BẤT TỬ (GOD MODE) -->
+            <div class="god-mode-container">
+                <div class="god-mode-label">
+                    🛡️ God Mode (Bất tử)
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="godmode-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
             <div class="mode-grid">
                 <button class="mode-btn" onclick="startGame(5)">5 Questions</button>
                 <button class="mode-btn" onclick="startGame(10)">10 Questions</button>
@@ -511,6 +554,7 @@
         let availablePool = [];
         let currentCountry = null;
         let hintLevel = 0;
+        let isGodMode = false; // Trạng thái Bất tử
 
         let timerInterval;
         let timeLeft = 0; 
@@ -521,6 +565,9 @@
         }
 
         function startGame(mode) {
+            // Kiểm tra trạng thái nút bật God Mode
+            isGodMode = document.getElementById('godmode-toggle').checked;
+
             document.getElementById('menu-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
             
@@ -628,7 +675,10 @@
                 resTitle.innerHTML = `🎉 CORRECT! It is <strong>${currentCountry.o}</strong> (+${pts} pts)`;
             } else {
                 streak = 0; 
-                mistakes++;
+                // Nếu BẮT TỬ, không cộng số lỗi sai
+                if (!isGodMode) {
+                    mistakes++;
+                }
                 resBox.className = 'result-box incorrect';
                 if (isTimeout) {
                     resTitle.innerHTML = `⏳ OUT OF TIME! The answer is <strong>${currentCountry.o}</strong>`;
@@ -641,13 +691,14 @@
             resBox.style.display = 'block';
             updateUI();
 
-            if (mistakes > maxMistakes) {
+            // Chỉ tính thua do quá 3 lỗi khi KHÔNG BẬT God Mode
+            if (!isGodMode && mistakes > maxMistakes) {
                 setTimeout(() => endGame('You made more than 3 mistakes!'), 1500);
             }
         }
 
         function skipQuestion() {
-            if (isWaitingForNext || mistakes > maxMistakes) return;
+            if (isWaitingForNext || (!isGodMode && mistakes > maxMistakes)) return;
             processResult(false, false);
         }
 
@@ -661,7 +712,7 @@
         }
 
         function nextQuestion() {
-            if (mistakes > maxMistakes) return;
+            if (!isGodMode && mistakes > maxMistakes) return;
             
             if (currentMode !== 'rush' && questionsAsked >= maxQuestions) {
                 endGame('You completed the challenge! 🏆');
@@ -674,17 +725,22 @@
             document.getElementById('score').textContent = `Score: ${score}`;
             document.getElementById('streak').textContent = streak;
             
-            const remainingMistakes = maxMistakes - mistakes;
-            if (remainingMistakes > 0) {
-                document.getElementById('lives').textContent = '❤️'.repeat(remainingMistakes);
+            const livesElem = document.getElementById('lives');
+            if (isGodMode) {
+                livesElem.textContent = '🛡️ ∞';
             } else {
-                document.getElementById('lives').textContent = '💔';
+                const remainingMistakes = maxMistakes - mistakes;
+                if (remainingMistakes > 0) {
+                    livesElem.textContent = '❤️'.repeat(remainingMistakes);
+                } else {
+                    livesElem.textContent = '💔';
+                }
             }
         }
 
         function endGame(reason) {
             clearInterval(timerInterval);
-            document.getElementById('modal-title').innerHTML = (mistakes <= maxMistakes && currentMode !== 'rush') ? "VICTORY! 🏆" : "GAME OVER! 😢";
+            document.getElementById('modal-title').innerHTML = (mistakes <= maxMistakes && currentMode !== 'rush') || isGodMode ? "VICTORY! 🏆" : "GAME OVER! 😢";
             document.getElementById('modal-desc').textContent = reason;
             document.getElementById('modal-score').textContent = score;
             document.getElementById('modal-correct').textContent = correctCount;
