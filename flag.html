@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Flag Trivia 🌍 - My Game Hub</title>
+    <style>
+        /* Bảng màu Dark Mode đồng bộ với index.html */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #3498db;
+            --accent-hover: #2980b9;
+            --border-color: #2c3e50;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --warning: #f1c40f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Thanh điều hướng Header */
+        header {
+            background-color: #1a1a1a;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        /* Khu vực hiển thị Game */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* Screens */
+        #menu-screen, #game-screen { 
+            background: var(--card-bg); 
+            width: 100%; 
+            max-width: 520px; 
+            border-radius: 16px; 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
+            padding: 30px; 
+            text-align: center; 
+            position: relative; 
+        }
+        #game-screen { display: none; }
+
+        /* Menu Game */
+        .menu-title { font-size: 28px; margin-bottom: 15px; color: #ffffff; }
+        .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .mode-btn { 
+            padding: 14px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border-color); 
+            background: #141414; 
+            color: var(--text-color);
+            font-size: 15px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+        }
+        .mode-btn:hover { 
+            border-color: var(--accent-color); 
+            background: rgba(52, 152, 219, 0.15); 
+            color: var(--accent-color); 
+        }
+        
+        .mode-btn.all { 
+            background: rgba(46, 204, 113, 0.1); 
+            border-color: rgba(46, 204, 113, 0.4); 
+            color: #2ecc71; 
+        }
+        .mode-btn.all:hover { 
+            background: rgba(46, 204, 113, 0.25); 
+        }
+        
+        .mode-btn.rush { 
+            grid-column: span 2; 
+            background: rgba(241, 196, 15, 0.1); 
+            border-color: rgba(241, 196, 15, 0.4); 
+            color: #f1c40f; 
+        }
+        .mode-btn.rush:hover { 
+            background: rgba(241, 196, 15, 0.25); 
+        }
+
+        /* Header Info trong Game */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .stat-box { 
+            background: #121212; 
+            padding: 8px 14px; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            font-size: 14px; 
+            border: 1px solid var(--border-color); 
+        }
+        .timer-box { font-size: 20px; font-weight: 800; color: var(--error); animation: pulse 1s infinite; }
+        .progress-text { margin-bottom: 15px; font-weight: 600; color: #a0a0a0; }
+
+        /* Flag Area */
+        .flag-box { 
+            width: 100%; 
+            height: 200px; 
+            background: #121212; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            padding: 10px;
+        }
+        .flag-img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); }
+
+        /* Inputs & Buttons */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="text"] { 
+            flex: 1; 
+            padding: 12px 15px; 
+            background: #121212;
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            font-size: 15px; 
+            color: #ffffff;
+            outline: none; 
+        }
+        input[type="text"]:focus { border-color: var(--accent-color); }
+        
+        .btn { 
+            padding: 12px 18px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            font-size: 15px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        .btn-primary { background: var(--accent-color); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-secondary { background: #2c3e50; color: #ffffff; }
+        .btn-secondary:hover { background: #34495e; }
+        
+        /* Result & Hint */
+        .hint-box { 
+            background: rgba(241, 196, 15, 0.1); 
+            color: #f1c40f; 
+            border: 1px solid rgba(241, 196, 15, 0.3); 
+            padding: 12px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            margin-bottom: 15px; 
+            display: none; 
+            text-align: left; 
+        }
+        .result-box { margin-top: 15px; padding: 15px; border-radius: 10px; display: none; text-align: left; }
+        .result-box.correct { background: rgba(46, 204, 113, 0.15); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
+        .result-box.incorrect { background: rgba(231, 76, 60, 0.15); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); }
+        .trivia-fact { margin-top: 8px; font-size: 13px; font-style: italic; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px; }
+
+        /* Modal Pop-up */
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(0, 0, 0, 0.85); 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 200; 
+            backdrop-filter: blur(4px); 
+        }
+        .modal-content { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            padding: 30px; 
+            border-radius: 16px; 
+            text-align: center; 
+            max-width: 400px; 
+            width: 90%; 
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .modal-title { font-size: 26px; margin-bottom: 10px; color: #ffffff; }
+        .modal-score { font-size: 40px; color: var(--accent-color); font-weight: 900; margin: 15px 0; }
+
+        /* Footer */
+        footer {
+            background-color: #1a1a1a;
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: auto;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navigation Bar -->
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo">🎮 My<span>GameHub</span></a>
+            <div class="nav-controls">
+                <nav>
+                    
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main>
+        <!-- MENU CHỌN CHẾ ĐỘ -->
+        <div id="menu-screen">
+            <h1 class="menu-title">🌎 Global Flag Trivia</h1>
+            <p style="margin-bottom: 20px; color: #a0a0a0;">Answer strictly in English. Max 3 mistakes allowed!</p>
+            
+            <div class="mode-grid">
+                <button class="mode-btn" onclick="startGame(5)">5 Questions</button>
+                <button class="mode-btn" onclick="startGame(10)">10 Questions</button>
+                <button class="mode-btn" onclick="startGame(20)">20 Questions</button>
+                <button class="mode-btn all" onclick="startGame('all')">🌍 All Countries</button>
+                <button class="mode-btn rush" onclick="startGame('rush')">⚡ RUSH MODE (3 Mins)</button>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH CHƠI GAME -->
+        <div id="game-screen">
+            <div class="header">
+                <div class="stat-box" style="color: var(--error);"><span id="lives">❤️❤️❤️</span></div>
+                <div class="timer-box" id="timer">00:20</div>
+                <div class="stat-box" style="color: var(--warning);">🔥 <span id="streak">0</span></div>
+            </div>
+            
+            <div class="progress-text">
+                <span id="score" style="color: var(--accent-color); font-weight: 800; float: left;">Score: 0</span>
+                <span id="question-progress">Q: 1/5</span>
+                <div style="clear: both;"></div>
+            </div>
+
+            <div class="flag-box"><img id="flag-img" class="flag-img" src="" alt="Flag"></div>
+            <div id="hint-box" class="hint-box"></div>
+
+            <form id="guess-form" onsubmit="submitAnswer(event)">
+                <div class="input-group">
+                    <input type="text" id="user-input" placeholder="Type country in English..." autocomplete="off">
+                    <button type="submit" class="btn btn-primary" id="btn-submit">Submit</button>
+                </div>
+            </form>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="getHint()" style="flex: 1;">💡 Hint</button>
+                <button class="btn btn-secondary" onclick="skipQuestion()" style="flex: 1;">⏭️ Skip</button>
+            </div>
+
+            <div id="result-box" class="result-box">
+                <div id="result-title" style="font-weight: 700; font-size: 16px;"></div>
+                <div id="trivia-fact" class="trivia-fact"></div>
+                <button class="btn btn-primary" onclick="nextQuestion()" style="margin-top: 12px; width: 100%;">Next ➡️</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- POP-UP THÔNG BÁO KẾT THÚC -->
+    <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modal-title">GAME OVER! 😢</h2>
+            <p id="modal-desc" style="color: #a0a0a0;">You exceeded 3 mistakes!</p>
+            <div class="modal-score" id="modal-score">0</div>
+            <p style="margin-bottom: 20px; color: #a0a0a0;">Correct Answers: <strong id="modal-correct" style="color: #fff;">0</strong></p>
+            <button class="btn btn-primary" style="width: 100%;" onclick="backToMenu()">🏠 Back to Menu</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 My Game Hub. Được thiết kế bởi một Developer tràn đầy nhiệt huyết.</p>
+    </footer>
+
+    <script>
+        // NGÂN HÀNG DỮ LIỆU CHUẨN 120 QUỐC GIA
+        const db = [
+            // ASIA
+            {c:'af', n:['afghanistan'], o:'Afghanistan', cap:'Kabul', cont:'Asia', t:'Landlocked country located at the crossroads of Central and South Asia.'},
+            {c:'am', n:['armenia'], o:'Armenia', cap:'Yerevan', cont:'Asia', t:'Known as the first country to adopt Christianity as its state religion.'},
+            {c:'az', n:['azerbaijan'], o:'Azerbaijan', cap:'Baku', cont:'Asia', t:'Famous for the "Burning Mountain" (Yanar Dag).'},
+            {c:'bh', n:['bahrain'], o:'Bahrain', cap:'Manama', cont:'Asia', t:'An island country in the Persian Gulf.'},
+            {c:'bd', n:['bangladesh'], o:'Bangladesh', cap:'Dhaka', cont:'Asia', t:'Home to the Sundarbans, the largest mangrove forest in the world.'},
+            {c:'bt', n:['bhutan'], o:'Bhutan', cap:'Thimphu', cont:'Asia', t:'Measures national progress by "Gross National Happiness".'},
+            {c:'bn', n:['brunei'], o:'Brunei', cap:'Bandar Seri Begawan', cont:'Asia', t:'A wealthy nation situated on the island of Borneo.'},
+            {c:'kh', n:['cambodia'], o:'Cambodia', cap:'Phnom Penh', cont:'Asia', t:'Famous for the majestic Angkor Wat temple complex.'},
+            {c:'cn', n:['china'], o:'China', cap:'Beijing', cont:'Asia', t:'The most populous country in the world (historically) with the Great Wall.'},
+            {c:'ge', n:['georgia'], o:'Georgia', cap:'Tbilisi', cont:'Asia/Europe', t:'Considered one of the oldest wine-producing regions in the world.'},
+            {c:'in', n:['india'], o:'India', cap:'New Delhi', cont:'Asia', t:'The birthplace of chess and yoga.'},
+            {c:'id', n:['indonesia'], o:'Indonesia', cap:'Jakarta', cont:'Asia', t:'The largest archipelago country in the world, with over 17,000 islands.'},
+            {c:'ir', n:['iran'], o:'Iran', cap:'Tehran', cont:'Asia', t:'Home to one of the world’s oldest continuous major civilizations.'},
+            {c:'iq', n:['iraq'], o:'Iraq', cap:'Baghdad', cont:'Asia', t:'Often called the "Cradle of Civilization" (Mesopotamia).'},
+            {c:'il', n:['israel'], o:'Israel', cap:'Jerusalem', cont:'Asia', t:'Bordering the lowest point on Earth, the Dead Sea.'},
+            {c:'jp', n:['japan'], o:'Japan', cap:'Tokyo', cont:'Asia', t:'Consists of over 6,800 islands and famous for Mt. Fuji.'},
+            {c:'jo', n:['jordan'], o:'Jordan', cap:'Amman', cont:'Asia', t:'Home to the ancient city of Petra.'},
+            {c:'kz', n:['kazakhstan'], o:'Kazakhstan', cap:'Astana', cont:'Asia', t:'The largest landlocked country in the world.'},
+            {c:'kw', n:['kuwait'], o:'Kuwait', cap:'Kuwait City', cont:'Asia', t:'Possesses about 6% of the world’s oil reserves.'},
+            {c:'kg', n:['kyrgyzstan'], o:'Kyrgyzstan', cap:'Bishkek', cont:'Asia', t:'Highly mountainous, heavily influenced by nomadic traditions.'},
+            {c:'la', n:['laos'], o:'Laos', cap:'Vientiane', cont:'Asia', t:'The only landlocked country in Southeast Asia.'},
+            {c:'lb', n:['lebanon'], o:'Lebanon', cap:'Beirut', cont:'Asia', t:'Known for its historic cedar trees.'},
+            {c:'my', n:['malaysia'], o:'Malaysia', cap:'Kuala Lumpur', cont:'Asia', t:'Home to the famous Petronas Twin Towers.'},
+            {c:'mv', n:['maldives'], o:'Maldives', cap:'Malé', cont:'Asia', t:'The lowest country in the world by average elevation.'},
+            {c:'mn', n:['mongolia'], o:'Mongolia', cap:'Ulaanbaatar', cont:'Asia', t:'The most sparsely populated independent country in the world.'},
+            {c:'mm', n:['myanmar', 'burma'], o:'Myanmar', cap:'Naypyidaw', cont:'Asia', t:'Famous for the thousands of Buddhist temples in Bagan.'},
+            {c:'np', n:['nepal'], o:'Nepal', cap:'Kathmandu', cont:'Asia', t:'Home to Mount Everest, the highest peak on Earth.'},
+            {c:'kp', n:['north korea'], o:'North Korea', cap:'Pyongyang', cont:'Asia', t:'Shares a heavily fortified border (DMZ) with its southern neighbor.'},
+            {c:'om', n:['oman'], o:'Oman', cap:'Muscat', cont:'Asia', t:'Known for its frankincense trees and ancient forts.'},
+            {c:'pk', n:['pakistan'], o:'Pakistan', cap:'Islamabad', cont:'Asia', t:'Home to K2, the second highest mountain in the world.'},
+            {c:'ph', n:['philippines', 'the philippines'], o:'Philippines', cap:'Manila', cont:'Asia', t:'An archipelago of over 7,600 islands.'},
+            {c:'qa', n:['qatar'], o:'Qatar', cap:'Doha', cont:'Asia', t:'Hosted the 2022 FIFA World Cup.'},
+            {c:'sa', n:['saudi arabia'], o:'Saudi Arabia', cap:'Riyadh', cont:'Asia', t:'The birthplace of Islam, home to Mecca and Medina.'},
+            {c:'sg', n:['singapore'], o:'Singapore', cap:'Singapore', cont:'Asia', t:'A sovereign island city-state in Southeast Asia.'},
+            {c:'kr', n:['south korea'], o:'South Korea', cap:'Seoul', cont:'Asia', t:'Global leader in technology and birthplace of K-Pop.'},
+            {c:'lk', n:['sri lanka'], o:'Sri Lanka', cap:'Colombo', cont:'Asia', t:'Often called the "Pearl of the Indian Ocean".'},
+            {c:'sy', n:['syria'], o:'Syria', cap:'Damascus', cont:'Asia', t:'Damascus is one of the oldest continuously inhabited cities.'},
+            {c:'tj', n:['tajikistan'], o:'Tajikistan', cap:'Dushanbe', cont:'Asia', t:'Over 90% of the country is covered by mountains.'},
+            {c:'th', n:['thailand'], o:'Thailand', cap:'Bangkok', cont:'Asia', t:'The only Southeast Asian nation never colonized by a European power.'},
+            {c:'tr', n:['turkey', 'turkiye'], o:'Turkey', cap:'Ankara', cont:'Asia/Europe', t:'Istanbul spans two continents: Europe and Asia.'},
+            {c:'tm', n:['turkmenistan'], o:'Turkmenistan', cap:'Ashgabat', cont:'Asia', t:'Famous for the "Door to Hell" gas crater.'},
+            {c:'ae', n:['united arab emirates', 'uae'], o:'United Arab Emirates', cap:'Abu Dhabi', cont:'Asia', t:'Home to the Burj Khalifa, the tallest building in the world.'},
+            {c:'uz', n:['uzbekistan'], o:'Uzbekistan', cap:'Tashkent', cont:'Asia', t:'One of only two doubly landlocked countries in the world.'},
+            {c:'vn', n:['vietnam', 'viet nam'], o:'Vietnam', cap:'Hanoi', cont:'Asia', t:'The world’s leading exporter of Robusta coffee and cashews.'},
+            {c:'ye', n:['yemen'], o:'Yemen', cap:'Sanaa', cont:'Asia', t:'Home to Shibam, often called the "Manhattan of the Desert".'},
+
+            // EUROPE
+            {c:'al', n:['albania'], o:'Albania', cap:'Tirana', cont:'Europe', t:'Features thousands of Cold War-era concrete bunkers.'},
+            {c:'at', n:['austria'], o:'Austria', cap:'Vienna', cont:'Europe', t:'The birthplace of Mozart and famous for the Alps.'},
+            {c:'by', n:['belarus'], o:'Belarus', cap:'Minsk', cont:'Europe', t:'Known for its vast primeval forests, like Białowieża.'},
+            {c:'be', n:['belgium'], o:'Belgium', cap:'Brussels', cont:'Europe', t:'Famous worldwide for its chocolate, waffles, and beer.'},
+            {c:'ba', n:['bosnia and herzegovina', 'bosnia'], o:'Bosnia and Herzegovina', cap:'Sarajevo', cont:'Europe', t:'Hosted the 1984 Winter Olympics.'},
+            {c:'bg', n:['bulgaria'], o:'Bulgaria', cap:'Sofia', cont:'Europe', t:'One of the oldest states on the European continent.'},
+            {c:'hr', n:['croatia'], o:'Croatia', cap:'Zagreb', cont:'Europe', t:'Has a stunning coastline along the Adriatic Sea.'},
+            {c:'cy', n:['cyprus'], o:'Cyprus', cap:'Nicosia', cont:'Europe', t:'An island nation divided between Greek and Turkish communities.'},
+            {c:'cz', n:['czech republic', 'czechia'], o:'Czech Republic', cap:'Prague', cont:'Europe', t:'Known for having the highest beer consumption per capita.'},
+            {c:'dk', n:['denmark'], o:'Denmark', cap:'Copenhagen', cont:'Europe', t:'The birthplace of LEGO toys.'},
+            {c:'ee', n:['estonia'], o:'Estonia', cap:'Tallinn', cont:'Europe', t:'A global leader in digital governance and e-residency.'},
+            {c:'fi', n:['finland'], o:'Finland', cap:'Helsinki', cont:'Europe', t:'Often ranked as the happiest country in the world.'},
+            {c:'fr', n:['france'], o:'France', cap:'Paris', cont:'Europe', t:'The most visited country in the world by international tourists.'},
+            {c:'de', n:['germany'], o:'Germany', cap:'Berlin', cont:'Europe', t:'Famous for the Oktoberfest and rich automotive history.'},
+            {c:'gr', n:['greece'], o:'Greece', cap:'Athens', cont:'Europe', t:'The birthplace of democracy and the Olympic Games.'},
+            {c:'hu', n:['hungary'], o:'Hungary', cap:'Budapest', cont:'Europe', t:'Invented the Rubik’s Cube and the ballpoint pen.'},
+            {c:'is', n:['iceland'], o:'Iceland', cap:'Reykjavik', cont:'Europe', t:'Known as the Land of Fire and Ice due to its volcanoes and glaciers.'},
+            {c:'ie', n:['ireland'], o:'Ireland', cap:'Dublin', cont:'Europe', t:'Known as the Emerald Isle because of its lush greenery.'},
+            {c:'it', n:['italy'], o:'Italy', cap:'Rome', cont:'Europe', t:'Contains the independent states of Vatican City and San Marino.'},
+            {c:'lv', n:['latvia'], o:'Latvia', cap:'Riga', cont:'Europe', t:'Over half of its territory is covered by forests.'},
+            {c:'lt', n:['lithuania'], o:'Lithuania', cap:'Vilnius', cont:'Europe', t:'The first Soviet republic to declare independence in 1990.'},
+            {c:'lu', n:['luxembourg'], o:'Luxembourg', cap:'Luxembourg City', cont:'Europe', t:'One of the smallest yet wealthiest nations in the world.'},
+            {c:'mt', n:['malta'], o:'Malta', cap:'Valletta', cont:'Europe', t:'An archipelago in the central Mediterranean.'},
+            {c:'md', n:['moldova'], o:'Moldova', cap:'Chișinău', cont:'Europe', t:'Home to Mileștii Mici, the largest wine cellar in the world.'},
+            {c:'mc', n:['monaco'], o:'Monaco', cap:'Monaco', cont:'Europe', t:'The second smallest independent state in the world.'},
+            {c:'me', n:['montenegro'], o:'Montenegro', cap:'Podgorica', cont:'Europe', t:'Name translates to "Black Mountain".'},
+            {c:'nl', n:['netherlands'], o:'Netherlands', cap:'Amsterdam', cont:'Europe', t:'Famous for its flat landscape, canals, and tulips.'},
+            {c:'mk', n:['north macedonia'], o:'North Macedonia', cap:'Skopje', cont:'Europe', t:'Changed its name from Macedonia in 2019.'},
+            {c:'no', n:['norway'], o:'Norway', cap:'Oslo', cont:'Europe', t:'Famous for its deep coastal fjords and Viking history.'},
+            {c:'pl', n:['poland'], o:'Poland', cap:'Warsaw', cont:'Europe', t:'Home to the world’s biggest castle by land area (Malbork).'},
+            {c:'pt', n:['portugal'], o:'Portugal', cap:'Lisbon', cont:'Europe', t:'One of the oldest nations in Europe with borders unchanged since 1139.'},
+            {c:'ro', n:['romania'], o:'Romania', cap:'Bucharest', cont:'Europe', t:'Home to the legendary region of Transylvania.'},
+            {c:'ru', n:['russia'], o:'Russia', cap:'Moscow', cont:'Europe/Asia', t:'The largest country in the world by surface area.'},
+            {c:'sm', n:['san marino'], o:'San Marino', cap:'San Marino', cont:'Europe', t:'Claims to be the oldest surviving sovereign state in the world.'},
+            {c:'rs', n:['serbia'], o:'Serbia', cap:'Belgrade', cont:'Europe', t:'The largest exporter of raspberries in the world.'},
+            {c:'sk', n:['slovakia'], o:'Slovakia', cap:'Bratislava', cont:'Europe', t:'Has the highest number of castles per capita in the world.'},
+            {c:'si', n:['slovenia'], o:'Slovenia', cap:'Ljubljana', cont:'Europe', t:'Contains over 10,000 caves, including Postojna.'},
+            {c:'es', n:['spain'], o:'Spain', cap:'Madrid', cont:'Europe', t:'The leading producer of olive oil globally.'},
+            {c:'se', n:['sweden'], o:'Sweden', cap:'Stockholm', cont:'Europe', t:'Birthplace of the Nobel Prize and IKEA.'},
+            {c:'ch', n:['switzerland'], o:'Switzerland', cap:'Bern', cont:'Europe', t:'Famous for its neutrality, banking, watches, and chocolate.'},
+            {c:'gb', n:['united kingdom', 'uk', 'britain', 'england'], o:'United Kingdom', cap:'London', cont:'Europe', t:'Comprises England, Scotland, Wales, and Northern Ireland.'},
+            {c:'ua', n:['ukraine'], o:'Ukraine', cap:'Kyiv', cont:'Europe', t:'Often referred to as the "breadbasket of Europe".'},
+            {c:'va', n:['vatican city', 'vatican'], o:'Vatican City', cap:'Vatican City', cont:'Europe', t:'The smallest independent state in the world by both area and population.'},
+
+            // AMERICAS
+            {c:'ag', n:['antigua and barbuda'], o:'Antigua & Barbuda', cap:'St. John\'s', cont:'North America', t:'Known for having 365 beaches, one for every day of the year.'},
+            {c:'ar', n:['argentina'], o:'Argentina', cap:'Buenos Aires', cont:'South America', t:'The birthplace of the Tango dance.'},
+            {c:'bs', n:['bahamas', 'the bahamas'], o:'Bahamas', cap:'Nassau', cont:'North America', t:'An archipelago consisting of over 700 islands.'},
+            {c:'bb', n:['barbados'], o:'Barbados', cap:'Bridgetown', cont:'North America', t:'The birthplace of pop superstar Rihanna.'},
+            {c:'bz', n:['belize'], o:'Belize', cap:'Belmopan', cont:'North America', t:'The only Central American country where English is the official language.'},
+            {c:'bo', n:['bolivia'], o:'Bolivia', cap:'Sucre/La Paz', cont:'South America', t:'Home to the world’s largest salt flat, Salar de Uyuni.'},
+            {c:'br', n:['brazil'], o:'Brazil', cap:'Brasília', cont:'South America', t:'The largest country in South America and the only one to speak Portuguese.'},
+            {c:'ca', n:['canada'], o:'Canada', cap:'Ottawa', cont:'North America', t:'Has the longest coastline of any country in the world.'},
+            {c:'cl', n:['chile'], o:'Chile', cap:'Santiago', cont:'South America', t:'Home to the Atacama Desert, the driest non-polar desert in the world.'},
+            {c:'co', n:['colombia'], o:'Colombia', cap:'Bogotá', cont:'South America', t:'Produces the majority of the world’s emeralds.'},
+            {c:'cr', n:['costa rica'], o:'Costa Rica', cap:'San José', cont:'North America', t:'Houses about 5% of the world’s biodiversity.'},
+            {c:'cu', n:['cuba'], o:'Cuba', cap:'Havana', cont:'North America', t:'Famous for classic vintage American cars and cigars.'},
+            {c:'do', n:['dominican republic'], o:'Dominican Republic', cap:'Santo Domingo', cont:'North America', t:'Shares the island of Hispaniola with Haiti.'},
+            {c:'ec', n:['ecuador'], o:'Ecuador', cap:'Quito', cont:'South America', t:'The country is named after the Equator which runs through it.'},
+            {c:'sv', n:['el salvador'], o:'El Salvador', cap:'San Salvador', cont:'North America', t:'The smallest country in Central America.'},
+            {c:'gt', n:['guatemala'], o:'Guatemala', cap:'Guatemala City', cont:'North America', t:'Considered the heart of the ancient Mayan civilization.'},
+            {c:'gy', n:['guyana'], o:'Guyana', cap:'Georgetown', cont:'South America', t:'The only English-speaking country in South America.'},
+            {c:'ht', n:['haiti'], o:'Haiti', cap:'Port-au-Prince', cont:'North America', t:'The first independent nation of Latin America and the Caribbean.'},
+            {c:'hn', n:['honduras'], o:'Honduras', cap:'Tegucigalpa', cont:'North America', t:'Once known as a classic "Banana Republic".'},
+            {c:'jm', n:['jamaica'], o:'Jamaica', cap:'Kingston', cont:'North America', t:'The birthplace of Reggae music and Bob Marley.'},
+            {c:'mx', n:['mexico'], o:'Mexico', cap:'Mexico City', cont:'North America', t:'Introduced chocolate, chilies, and corn to the world.'},
+            {c:'ni', n:['nicaragua'], o:'Nicaragua', cap:'Managua', cont:'North America', t:'Known as the "land of lakes and volcanoes".'},
+            {c:'pa', n:['panama'], o:'Panama', cap:'Panama City', cont:'North America', t:'Famous for the canal connecting the Atlantic and Pacific oceans.'},
+            {c:'py', n:['paraguay'], o:'Paraguay', cap:'Asunción', cont:'South America', t:'One of only two landlocked countries in South America.'},
+            {c:'pe', n:['peru'], o:'Peru', cap:'Lima', cont:'South America', t:'Home to the iconic Incan citadel, Machu Picchu.'},
+            {c:'us', n:['united states', 'usa', 'us', 'america'], o:'United States', cap:'Washington D.C.', cont:'North America', t:'The third largest country by both land area and population.'},
+            {c:'uy', n:['uruguay'], o:'Uruguay', cap:'Montevideo', cont:'South America', t:'Hosted and won the very first FIFA World Cup in 1930.'},
+            {c:'ve', n:['venezuela'], o:'Venezuela', cap:'Caracas', cont:'South America', t:'Home to Angel Falls, the world’s highest uninterrupted waterfall.'},
+
+            // AFRICA
+            {c:'dz', n:['algeria'], o:'Algeria', cap:'Algiers', cont:'Africa', t:'The largest country in Africa by land area.'},
+            {c:'ao', n:['angola'], o:'Angola', cap:'Luanda', cont:'Africa', t:'Portuguese is the official language due to colonial history.'},
+            {c:'bw', n:['botswana'], o:'Botswana', cap:'Gaborone', cont:'Africa', t:'One of the world’s largest producers of diamonds.'},
+            {c:'cm', n:['cameroon'], o:'Cameroon', cap:'Yaoundé', cont:'Africa', t:'Known as "Africa in miniature" for its diverse landscapes.'},
+            {c:'eg', n:['egypt'], o:'Egypt', cap:'Cairo', cont:'Africa', t:'Famous for the ancient Pyramids of Giza and the Sphinx.'},
+            {c:'et', n:['ethiopia'], o:'Ethiopia', cap:'Addis Ababa', cont:'Africa', t:'The only African nation never fully colonized by a European power.'},
+            {c:'gh', n:['ghana'], o:'Ghana', cap:'Accra', cont:'Africa', t:'Was the first sub-Saharan African country to gain independence.'},
+            {c:'ke', n:['kenya'], o:'Kenya', cap:'Nairobi', cont:'Africa', t:'Renowned globally for its classic savannah safaris.'},
+            {c:'mg', n:['madagascar'], o:'Madagascar', cap:'Antananarivo', cont:'Africa', t:'Over 90% of its wildlife is found nowhere else on Earth.'},
+            {c:'ma', n:['morocco'], o:'Morocco', cap:'Rabat', cont:'Africa', t:'Famous for the vibrant markets (souks) in Marrakech.'},
+            {c:'ng', n:['nigeria'], o:'Nigeria', cap:'Abuja', cont:'Africa', t:'The most populous country in Africa.'},
+            {c:'rw', n:['rwanda'], o:'Rwanda', cap:'Kigali', cont:'Africa', t:'Known as the "Land of a Thousand Hills".'},
+            {c:'sn', n:['senegal'], o:'Senegal', cap:'Dakar', cont:'Africa', t:'The westernmost point of the African continent is located here.'},
+            {c:'za', n:['south africa'], o:'South Africa', cap:'Pretoria/Cape Town/Bloemfontein', cont:'Africa', t:'Has 3 distinct capital cities and 11 official languages.'},
+            {c:'tz', n:['tanzania'], o:'Tanzania', cap:'Dodoma', cont:'Africa', t:'Home to Mount Kilimanjaro, Africa’s highest peak.'},
+            {c:'ug', n:['uganda'], o:'Uganda', cap:'Kampala', cont:'Africa', t:'Nicknamed the "Pearl of Africa" by Winston Churchill.'},
+            {c:'zm', n:['zambia'], o:'Zambia', cap:'Lusaka', cont:'Africa', t:'Shares the spectacular Victoria Falls with Zimbabwe.'},
+            {c:'zw', n:['zimbabwe'], o:'Zimbabwe', cap:'Harare', cont:'Africa', t:'Once experienced hyperinflation resulting in a 100 Trillion dollar note.'},
+
+            // OCEANIA
+            {c:'au', n:['australia'], o:'Australia', cap:'Canberra', cont:'Oceania', t:'Both a country and a continent, famous for Kangaroos.'},
+            {c:'fj', n:['fiji'], o:'Fiji', cap:'Suva', cont:'Oceania', t:'An archipelago of more than 300 islands.'},
+            {c:'nz', n:['new zealand'], o:'New Zealand', cap:'Wellington', cont:'Oceania', t:'The filming location for "The Lord of the Rings" trilogy.'},
+            {c:'pg', n:['papua new guinea'], o:'Papua New Guinea', cap:'Port Moresby', cont:'Oceania', t:'One of the most culturally diverse countries, with over 800 languages.'},
+            {c:'ws', n:['samoa'], o:'Samoa', cap:'Apia', cont:'Oceania', t:'Features traditional Polynesian culture and tattoos.'}
+        ];
+
+        // TRẠNG THÁI GAME
+        let score = 0, streak = 0, mistakes = 0, correctCount = 0;
+        const maxMistakes = 3; 
+        let currentMode = null;
+        let maxQuestions = 0;
+        let questionsAsked = 0;
+        let availablePool = [];
+        let currentCountry = null;
+        let hintLevel = 0;
+
+        let timerInterval;
+        let timeLeft = 0; 
+        let isWaitingForNext = false; 
+
+        function cleanInput(str) {
+            return str.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+        }
+
+        function startGame(mode) {
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            currentMode = mode;
+            
+            if (mode === 'rush') {
+                maxQuestions = Infinity;
+            } else if (mode === 'all') {
+                maxQuestions = db.length;
+            } else {
+                maxQuestions = parseInt(mode);
+            }
+            
+            score = 0; streak = 0; mistakes = 0; correctCount = 0; questionsAsked = 0;
+            availablePool = [...db]; 
+            
+            timeLeft = (mode === 'rush') ? 180 : 20;
+
+            updateUI();
+            loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            if (availablePool.length === 0) availablePool = [...db];
+
+            const rIdx = Math.floor(Math.random() * availablePool.length);
+            currentCountry = availablePool.splice(rIdx, 1)[0];
+            
+            questionsAsked++;
+            hintLevel = 0;
+            isWaitingForNext = false;
+
+            document.getElementById('flag-img').src = `https://flagcdn.com/w640/${currentCountry.c}.png`;
+            
+            const inp = document.getElementById('user-input');
+            inp.value = ''; inp.disabled = false;
+            document.getElementById('btn-submit').disabled = false;
+            document.getElementById('hint-box').style.display = 'none';
+            document.getElementById('result-box').style.display = 'none';
+            inp.focus();
+
+            if (currentMode !== 'rush') timeLeft = 20; 
+            updateTimerDisplay();
+            startTimer();
+
+            const qProgress = document.getElementById('question-progress');
+            qProgress.textContent = (currentMode === 'rush') ? "⚡ RUSH MODE" : `Q: ${questionsAsked}/${maxQuestions}`;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (isWaitingForNext) return;
+                
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            let mins = Math.floor(timeLeft / 60);
+            let secs = timeLeft % 60;
+            document.getElementById('timer').textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function handleTimeout() {
+            if (currentMode === 'rush') {
+                endGame('Time is up!');
+            } else {
+                processResult(false, true);
+            }
+        }
+
+        function submitAnswer(e) {
+            e.preventDefault();
+            if (isWaitingForNext) return;
+
+            const val = cleanInput(document.getElementById('user-input').value);
+            if (!val) return;
+
+            const isCorrect = currentCountry.n.some(name => cleanInput(name) === val);
+            processResult(isCorrect, false);
+        }
+
+        function processResult(isCorrect, isTimeout) {
+            isWaitingForNext = true;
+            if (currentMode !== 'rush') clearInterval(timerInterval);
+
+            document.getElementById('user-input').disabled = true;
+            document.getElementById('btn-submit').disabled = true;
+            
+            const resBox = document.getElementById('result-box');
+            const resTitle = document.getElementById('result-title');
+            
+            if (isCorrect) {
+                streak++; correctCount++;
+                let pts = 10 + (streak > 1 ? (streak - 1) * 2 : 0);
+                score += pts;
+                resBox.className = 'result-box correct';
+                resTitle.innerHTML = `🎉 CORRECT! It is <strong>${currentCountry.o}</strong> (+${pts} pts)`;
+            } else {
+                streak = 0; 
+                mistakes++;
+                resBox.className = 'result-box incorrect';
+                if (isTimeout) {
+                    resTitle.innerHTML = `⏳ OUT OF TIME! The answer is <strong>${currentCountry.o}</strong>`;
+                } else {
+                    resTitle.innerHTML = `❌ WRONG! The correct answer is <strong>${currentCountry.o}</strong>`;
+                }
+            }
+
+            document.getElementById('trivia-fact').innerHTML = `💡 <strong>Trivia:</strong> ${currentCountry.t}`;
+            resBox.style.display = 'block';
+            updateUI();
+
+            if (mistakes > maxMistakes) {
+                setTimeout(() => endGame('You made more than 3 mistakes!'), 1500);
+            }
+        }
+
+        function skipQuestion() {
+            if (isWaitingForNext || mistakes > maxMistakes) return;
+            processResult(false, false);
+        }
+
+        function getHint() {
+            if (hintLevel >= 2 || isWaitingForNext) return;
+            const box = document.getElementById('hint-box');
+            hintLevel++;
+            if (hintLevel === 1) box.innerHTML = `📌 <strong>Hint 1:</strong> Located in <strong>${currentCountry.cont}</strong>.`;
+            if (hintLevel === 2) box.innerHTML += `<br>🏛️ <strong>Hint 2:</strong> Capital is <strong>${currentCountry.cap}</strong>.`;
+            box.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            if (mistakes > maxMistakes) return;
+            
+            if (currentMode !== 'rush' && questionsAsked >= maxQuestions) {
+                endGame('You completed the challenge! 🏆');
+            } else {
+                loadNextQuestion();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('streak').textContent = streak;
+            
+            const remainingMistakes = maxMistakes - mistakes;
+            if (remainingMistakes > 0) {
+                document.getElementById('lives').textContent = '❤️'.repeat(remainingMistakes);
+            } else {
+                document.getElementById('lives').textContent = '💔';
+            }
+        }
+
+        function endGame(reason) {
+            clearInterval(timerInterval);
+            document.getElementById('modal-title').innerHTML = (mistakes <= maxMistakes && currentMode !== 'rush') ? "VICTORY! 🏆" : "GAME OVER! 😢";
+            document.getElementById('modal-desc').textContent = reason;
+            document.getElementById('modal-score').textContent = score;
+            document.getElementById('modal-correct').textContent = correctCount;
+            
+            document.getElementById('game-over-modal').style.display = 'flex';
+        }
+
+        function backToMenu() {
+            document.getElementById('game-over-modal').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
