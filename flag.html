@@ -195,7 +195,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .stat-box { 
             background: #121212; 
-            padding: 8px 14px; 
+            padding: 8px 12px; 
             border-radius: 8px; 
             font-weight: 700; 
             font-size: 14px; 
@@ -203,6 +203,27 @@
         }
         .timer-box { font-size: 20px; font-weight: 800; color: var(--error); animation: pulse 1s infinite; }
         .progress-text { margin-bottom: 15px; font-weight: 600; color: #a0a0a0; }
+
+        /* Nút Exit / Quay về */
+        .btn-quit {
+            background: #141414;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-quit:hover {
+            border-color: var(--error);
+            color: var(--error);
+            background: rgba(231, 76, 60, 0.1);
+        }
 
         /* Flag Area */
         .flag-box { 
@@ -285,7 +306,7 @@
             width: 90%; 
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
-        .modal-title { font-size: 26px; margin-bottom: 10px; color: #ffffff; }
+        .modal-title { font-size: 24px; margin-bottom: 10px; color: #ffffff; }
         .modal-score { font-size: 40px; color: var(--accent-color); font-weight: 900; margin: 15px 0; }
 
         /* Footer */
@@ -342,6 +363,9 @@
         <!-- MÀN HÌNH CHƠI GAME -->
         <div id="game-screen">
             <div class="header">
+                <!-- NÚT THOÁT VỀ MENU -->
+                <button class="btn-quit" onclick="requestQuitGame()">🏠 Exit</button>
+
                 <div class="stat-box" style="color: var(--error);"><span id="lives">❤️❤️❤️</span></div>
                 <div class="timer-box" id="timer">00:20</div>
                 <div class="stat-box" style="color: var(--warning);">🔥 <span id="streak">0</span></div>
@@ -371,10 +395,22 @@
             <div id="result-box" class="result-box">
                 <div id="result-title" style="font-weight: 700; font-size: 16px;"></div>
                 <div id="trivia-fact" class="trivia-fact"></div>
-                <button class="btn btn-primary" onclick="nextQuestion()" style="margin-top: 12px; width: 100%;">Next ➡️</button>
+                <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" style="margin-top: 12px; width: 100%;">Next ➡️ (Enter)</button>
             </div>
         </div>
     </main>
+
+    <!-- POP-UP CẢNH BÁO QUAY VỀ MENU -->
+    <div id="quit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title" style="color: var(--warning);">⚠️ Quit Game?</h2>
+            <p style="color: #a0a0a0; margin-bottom: 20px;">Your current score and progress will be lost. Are you sure you want to return to the main menu?</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="cancelQuitGame()">Resume 🎮</button>
+                <button class="btn btn-primary" style="flex: 1; background: var(--error);" onclick="confirmQuitGame()">Quit 🚪</button>
+            </div>
+        </div>
+    </div>
 
     <!-- POP-UP THÔNG BÁO KẾT THÚC -->
     <div id="game-over-modal" class="modal-overlay">
@@ -738,6 +774,26 @@
             }
         }
 
+        // --- XỬ LÝ CẢNH BÁO QUAY VỀ MENU ---
+        function requestQuitGame() {
+            // Tạm dừng đếm thời gian
+            clearInterval(timerInterval);
+            document.getElementById('quit-modal').style.display = 'flex';
+        }
+
+        function cancelQuitGame() {
+            document.getElementById('quit-modal').style.display = 'none';
+            // Resume lại đếm thời gian nếu chưa chuyển câu tiếp theo
+            if (!isWaitingForNext) {
+                startTimer();
+            }
+        }
+
+        function confirmQuitGame() {
+            document.getElementById('quit-modal').style.display = 'none';
+            backToMenu();
+        }
+
         function endGame(reason) {
             clearInterval(timerInterval);
             document.getElementById('modal-title').innerHTML = (mistakes <= maxMistakes && currentMode !== 'rush') || isGodMode ? "VICTORY! 🏆" : "GAME OVER! 😢";
@@ -749,10 +805,28 @@
         }
 
         function backToMenu() {
+            clearInterval(timerInterval);
             document.getElementById('game-over-modal').style.display = 'none';
+            document.getElementById('quit-modal').style.display = 'none';
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('menu-screen').style.display = 'block';
         }
+
+        // --- SỰ KIỆN LẮNG NGHE PHÍM ENTER ĐỂ SANG CỜ TIẾP THEO ---
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const quitModal = document.getElementById('quit-modal');
+                const gameOverModal = document.getElementById('game-over-modal');
+                const isQuitModalOpen = quitModal && quitModal.style.display === 'flex';
+                const isGameOverModalOpen = gameOverModal && gameOverModal.style.display === 'flex';
+
+                // Chỉ kích hoạt Next khi đang ở trạng thái chờ câu mới và không mở pop-up nào
+                if (isWaitingForNext && !isQuitModalOpen && !isGameOverModalOpen) {
+                    e.preventDefault();
+                    nextQuestion();
+                }
+            }
+        });
     </script>
 </body>
 </html>
