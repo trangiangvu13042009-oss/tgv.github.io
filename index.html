@@ -31,7 +31,7 @@
             flex-direction: column;
         }
 
-        /* Thanh điều hướng (Header/Navigation) */
+        /* Thanh điều hướng (Header/Navigation / Taskbar) */
         header {
             background-color: #1a1a1a;
             border-bottom: 1px solid var(--border-color);
@@ -216,9 +216,12 @@
             overflow: hidden;
         }
 
-        /* Thumbnail riêng biệt màu sắc cho game thứ hai */
         .bg-ultimate {
-            background: #ffffff
+            background: #ffffff;
+        }
+
+        .bg-flag {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
         }
 
         .game-info {
@@ -269,26 +272,25 @@
             margin-top: auto;
         }
         
-        /* Thêm đoạn này để xử lý hình ảnh thumbnail */
         .game-img {
             width: 50%;
             height: 100%;
-            object-fit: cover; /* Giúp ảnh tự lấp đầy khung hình mà không bị méo, kéo dãn */
-            object-position: center; /* Giữ tâm bức ảnh luôn ở giữa */
-    }
+            object-fit: cover;
+            object-position: center;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header & Menu Điều Hướng -->
+    <!-- Header & Menu Điều Hướng (Taskbar) -->
     <header>
         <div class="nav-container">
-            <a href="#" class="logo" onclick="switchPage('games')">🎮 My<span>GameHub</span></a>
+            <a href="#" class="logo" onclick="switchPage('games', event)">🎮 My<span>GameHub</span></a>
             <div class="nav-controls">
                 <nav>
                     <ul class="nav-links">
-                        <li><a href="#" id="nav-about" onclick="switchPage('about')">Giới thiệu</a></li>
-                        <li><a href="#" id="nav-games" class="active" onclick="switchPage('games')">Kho Game</a></li>
+                        <li><a href="#" id="nav-about" onclick="switchPage('about', event)">Giới thiệu</a></li>
+                        <li><a href="#" id="nav-games" class="active" onclick="switchPage('games', event)">Kho Game</a></li>
                     </ul>
                 </nav>
                 <!-- Nút chuyển ngôn ngữ -->
@@ -331,20 +333,32 @@
                     </div>
                     <div class="game-info">
                         <h2 class="game-title" id="game1Title">Tic-Tak-Toe 3x3</h2>
-                        <p class="game-desc" id="game1Desc">Trò chơi cờ caro 3x3 cổ điển với giao diện Dark Mode bắt mắt. Bạn có thể chọn chế độ Chơi 2 người hoặc thử thách bản thân đấu với Máy (AI) thông minh bất bại!</p>
+                        <p class="game-desc" id="game1Desc">Trò chơi cờ caro 3x3 cổ điển với giao diện Dark Mode bắt mắt. Bạn có thể chọn chế độ Chơi 2 người hoặc thử thách bản thân đấu với AI thông minh bất bại!</p>
                         <a href="tictactoe.html" class="game-btn" id="game1Btn">Chơi Ngay ⚡</a>
                     </div>
                 </div>
 
-                <!-- Thẻ Game 2: Ultimate Tic-Tak-Toe 3x3 (MỚI THÊM) -->
+                <!-- Thẻ Game 2: Ultimate Tic-Tak-Toe 3x3 -->
                 <div class="game-card">
                     <div class="game-thumbnail bg-ultimate">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Super_tic-tac-toe_rules_example.png/500px-Super_tic-tac-toe_rules_example.png" alt="Ultimate Tic-Tak-Toe 3x3" class="game-img">
                     </div>
                     <div class="game-info">
                         <h2 class="game-title" id="game2Title">Ultimate Tic-Tak-Toe 3x3</h2>
-                        <p class="game-desc" id="game2Desc">Phiên bản nâng cấp mang tính chiến thuật đỉnh cao của Tic-Tac-Toe. Mỗi nước đi của bạn trong lưới nhỏ sẽ ép đối thủ phải đi vào lưới lớn tương ứng. </p>
+                        <p class="game-desc" id="game2Desc">Phiên bản nâng cấp mang tính chiến thuật đỉnh cao của Tic-Tac-Toe. Mỗi nước đi của bạn trong lưới nhỏ sẽ ép đối thủ phải đi vào lưới lớn tương ứng.</p>
                         <a href="ultimatexo.html" class="game-btn" id="game2Btn">Chơi Ngay ⚡</a>
+                    </div>
+                </div>
+
+                <!-- Thẻ Game 3: Guessing Flag (Game Đấu Trí Địa Lý) -->
+                <div class="game-card">
+                    <div class="game-thumbnail bg-flag">
+                        🌍🚩
+                    </div>
+                    <div class="game-info">
+                        <h2 class="game-title" id="game3Title">Guessing Flag Trivia</h2>
+                        <p class="game-desc" id="game3Desc">Thử thách kiến thức địa lý toàn cầu với hơn 120 quốc gia. Nhiều chế độ chơi: 5/10/20 câu, All Countries và Rush Mode! (Lưu ý: Nội dung & đáp án game bằng Tiếng Anh).</p>
+                        <a href="flag.html" class="game-btn" id="game3Btn">Chơi Ngay ⚡</a>
                     </div>
                 </div>
             </div>
@@ -362,7 +376,7 @@
         let currentLang = 'vi';
         let currentPage = 'games';
 
-        // Bộ từ điển dịch đa ngôn ngữ cho trang chủ
+        // Bộ từ điển dịch đa ngôn ngữ cho trang chủ & taskbar
         const homeTranslations = {
             vi: {
                 docTitle: "My Game Hub",
@@ -389,13 +403,18 @@
                 game2Title: "Ultimate Tic-Tak-Toe 3x3",
                 game2Desc: "Phiên bản nâng cấp mang tính chiến thuật đỉnh cao của Tic-Tac-Toe. Mỗi nước đi của bạn trong lưới nhỏ sẽ ép đối thủ phải đi vào lưới lớn tương ứng.",
                 game2Btn: "Chơi Ngay ⚡",
+
+                // Game 3: Guessing Flag
+                game3Title: "Guessing Flag Trivia",
+                game3Desc: "Thử thách kiến thức địa lý toàn cầu với hơn 120 quốc gia. Nhiều chế độ chơi: 5/10/20 câu, All Countries và Rush Mode! (Lưu ý: Nội dung & đáp án game bằng Tiếng Anh).",
+                game3Btn: "Chơi Ngay ⚡",
                 
                 footerText: "© 2026 My Game Hub. Được thiết kế bởi một Developer tràn đầy nhiệt huyết."
             },
             en: {
                 docTitle: "My Game Hub",
                 navAbout: "About Me",
-                navGames: "Games",
+                navGames: "Games Store",
                 langBtn: "🌐 Tiếng Việt",
                 
                 // About me
@@ -410,13 +429,18 @@
                 
                 // Game 1: Tic-Tak-Toe
                 game1Title: "Tic-Tak-Toe 3x3",
-                game1Desc: "Classic 3x3 tic-tac-toe game in clean Dark Mode. Challenge your friend in 2-player mode or play against an unbeatable AI!",
+                game1Desc: "Classic 3x3 tic-tac-toe in clean Dark Mode. Challenge a friend in 2-player mode or play against an unbeatable AI!",
                 game1Btn: "Play Now ⚡",
 
                 // Game 2: Ultimate Tic-Tak-Toe
                 game2Title: "Ultimate Tic-Tak-Toe 3x3",
-                game2Desc: "An advanced strategic version of Tic-Tac-Toe. Your move in a mini-board dictates which mini-board your opponent must play in next. ",
+                game2Desc: "An advanced strategic version of Tic-Tac-Toe. Your move in a mini-board dictates which mini-board your opponent must play in next.",
                 game2Btn: "Play Now ⚡",
+
+                // Game 3: Guessing Flag
+                game3Title: "Guessing Flag Trivia",
+                game3Desc: "Test your global geography knowledge with over 120 flags. Featuring multiple modes: 5/10/20 Qs, All Countries, and Rush Mode! (Note: Gameplay & answers are in English).",
+                game3Btn: "Play Now ⚡",
                 
                 footerText: "© 2026 My Game Hub. Crafted by a passionate developer."
             }
@@ -429,7 +453,7 @@
             // Cập nhật thẻ tiêu đề trình duyệt
             document.getElementById('docTitle').textContent = t.docTitle;
             
-            // Cập nhật thanh menu & nút chuyển ngôn ngữ
+            // Cập nhật thanh menu (Taskbar) & nút chuyển ngôn ngữ
             document.getElementById('nav-about').textContent = t.navAbout;
             document.getElementById('nav-games').textContent = t.navGames;
             document.getElementById('langToggle').textContent = t.langBtn;
@@ -451,10 +475,15 @@
             document.getElementById('game1Desc').textContent = t.game1Desc;
             document.getElementById('game1Btn').textContent = t.game1Btn;
 
-            // Game 2 (Cập nhật bản dịch động)
+            // Game 2
             document.getElementById('game2Title').textContent = t.game2Title;
             document.getElementById('game2Desc').textContent = t.game2Desc;
             document.getElementById('game2Btn').textContent = t.game2Btn;
+
+            // Game 3
+            document.getElementById('game3Title').textContent = t.game3Title;
+            document.getElementById('game3Desc').textContent = t.game3Desc;
+            document.getElementById('game3Btn').textContent = t.game3Btn;
             
             // Footer
             document.getElementById('footerText').textContent = t.footerText;
@@ -467,8 +496,8 @@
         }
 
         // Xử lý chuyển đổi giữa các trang con (Single Page App)
-        function switchPage(pageId) {
-            event.preventDefault();
+        function switchPage(pageId, evt) {
+            if (evt) evt.preventDefault();
             currentPage = pageId;
 
             // Ẩn tất cả các sections
